@@ -1,0 +1,10 @@
+FROM gcr.io/distroless/static-debian12:debug-nonroot
+
+COPY dist/cli /bin/cli
+WORKDIR /app
+
+ENV WOODPECKER_DISABLE_UPDATE_CHECK=true
+
+HEALTHCHECK CMD ["/bin/cli", "ping"]
+
+ENTRYPOINT ["/bin/cli"]
