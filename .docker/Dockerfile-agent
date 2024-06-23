@@ -1,0 +1,10 @@
+FROM gcr.io/distroless/static-debian12:nonroot
+
+COPY dist/etc/ /etc/woodpecker/
+COPY dist/agent /bin/agent
+WORKDIR /app
+
+EXPOSE 3000
+HEALTHCHECK CMD ["/bin/agent", "ping"]
+
+ENTRYPOINT ["/bin/agent"]

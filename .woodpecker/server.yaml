@@ -1,0 +1,63 @@
+# Environments
+# SKIP_SERVER=true|false - skip server workflow
+# APP_TAG=0.0.1 - override CI_COMMIT_TAG var, application release version
+
+variables:
+  - &debian_image 'public.ecr.aws/docker/library/debian:bookworm-slim'
+  - &golang_image 'public.ecr.aws/docker/library/golang:1.22.4-bookworm'
+  - &node_image 'public.ecr.aws/docker/library/node:22.3.0-bookworm-slim'
+  - &kaniko_image "gcr.io/kaniko-project/executor:v1.23.1-debug"
+
+when:
+  - branch: main
+    event:
+      - manual
+      - push
+    evaluate: 'SKIP_SERVER != "true"'
+  - branch:
+      exclude: main
+    event:
+      - manual
+      - tag
+    evaluate: 'SKIP_SERVER != "true"'
+
+steps:
+  set-env:
+    image: *debian_image
+    environment:
+      APP_COMPONENT: server
+    commands:
+      - .cicd/set-env.sh
+  vendor:
+    image: *golang_image
+    commands:
+      - .cicd/vendor.sh
+  build-ui:
+    image: *node_image
+    commands:
+      - .cicd/build-ui.sh
+  build:
+    image: *golang_image
+    commands:
+      - .cicd/build.sh
+  image:
+    image: *kaniko_image
+    environment:
+      DOCKER_USR:
+        from_secret: fb_harbor_usr
+      DOCKER_PWD:
+        from_secret: fb_harbor_pwd
+    commands:
+      - .cicd/set-docker-auth.sh
+      - .cicd/image.sh
+  image-debug:
+    image: *kaniko_image
+    environment:
+      IMAGE_DEBUG: true
+      DOCKER_USR:
+        from_secret: fb_harbor_usr
+      DOCKER_PWD:
+        from_secret: fb_harbor_pwd
+    commands:
+      - .cicd/set-docker-auth.sh
+      - .cicd/image.sh
