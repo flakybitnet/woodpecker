@@ -31,6 +31,7 @@ func TestGettingConfig(t *testing.T) {
 			PodAnnotations:       map[string]string{"a1": "v1"},
 			ImagePullSecretNames: []string{"regcred"},
 			SecurityContext:      SecurityContextConfig{RunAsNonRoot: false},
+			PssProfile:           PssProfileRestricted,
 		},
 	}
 	config := engine.getConfig()
@@ -41,6 +42,7 @@ func TestGettingConfig(t *testing.T) {
 	config.PodAnnotations["a2"] = "v2"
 	config.ImagePullSecretNames = append(config.ImagePullSecretNames, "docker.io")
 	config.SecurityContext.RunAsNonRoot = true
+	config.PssProfile = PssProfileBaseline
 
 	assert.Equal(t, "default", engine.config.Namespace)
 	assert.Equal(t, "hdd", engine.config.StorageClass)
@@ -50,4 +52,5 @@ func TestGettingConfig(t *testing.T) {
 	assert.Equal(t, 1, len(engine.config.PodAnnotations))
 	assert.Equal(t, 1, len(engine.config.ImagePullSecretNames))
 	assert.Equal(t, false, engine.config.SecurityContext.RunAsNonRoot)
+	assert.Equal(t, PssProfileRestricted, engine.config.PssProfile)
 }
