@@ -78,6 +78,21 @@ var Flags = []cli.Flag{
 		Name:    "backend-k8s-secctx-nonroot",
 		Usage:   "`run as non root` Kubernetes security context option",
 	},
+	&cli.IntFlag{
+		Sources: cli.EnvVars("WOODPECKER_BACKEND_K8S_SECCTX_USER"),
+		Name:    "backend-k8s-secctx-user",
+		Usage:   "user under which Pod starts",
+	},
+	&cli.IntFlag{
+		Sources: cli.EnvVars("WOODPECKER_BACKEND_K8S_SECCTX_GROUP"),
+		Name:    "backend-k8s-secctx-group",
+		Usage:   "group under which Pod starts",
+	},
+	&cli.IntFlag{
+		Sources: cli.EnvVars("WOODPECKER_BACKEND_K8S_SECCTX_FSGROUP"),
+		Name:    "backend-k8s-secctx-fsgroup",
+		Usage:   "group under which volumes mount",
+	},
 	&cli.StringFlag{
 		Sources: cli.EnvVars("WOODPECKER_BACKEND_K8S_PSS_PROFILE"),
 		Name:    "backend-k8s-pss-profile",
