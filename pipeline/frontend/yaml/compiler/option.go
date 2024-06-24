@@ -15,6 +15,7 @@
 package compiler
 
 import (
+	"github.com/rs/zerolog/log"
 	"net/url"
 	"path"
 	"strings"
@@ -96,6 +97,7 @@ func WithNetrc(username, password, machine string) Option {
 // are joined to provide the working directory for all pipeline and
 // plugin steps in the pipeline.
 func WithWorkspace(base, path string) Option {
+	log.Trace().Msgf("with workspace base %s, path %s", base, path)
 	return func(compiler *Compiler) {
 		compiler.workspaceBase = base
 		compiler.workspacePath = path
