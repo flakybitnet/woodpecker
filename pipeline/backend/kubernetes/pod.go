@@ -48,7 +48,7 @@ func mkPod(step *types.Step, config *config, podName, goos string, options Backe
 		return nil, err
 	}
 
-	container, err := podContainer(step, podName, goos, options)
+	container, err := podContainer(step, config, options, podName, goos)
 	if err != nil {
 		return nil, err
 	}
@@ -166,7 +166,7 @@ func podSpec(step *types.Step, config *config, options BackendOptions) (v1.PodSp
 	return spec, nil
 }
 
-func podContainer(step *types.Step, podName, goos string, options BackendOptions) (v1.Container, error) {
+func podContainer(step *types.Step, config *config, options BackendOptions, podName, goos string) (v1.Container, error) {
 	var err error
 	container := v1.Container{
 		Name:            podName,
@@ -181,7 +181,7 @@ func podContainer(step *types.Step, podName, goos string, options BackendOptions
 	}
 
 	if len(step.Commands) > 0 {
-		scriptEnv, command := common.GenerateContainerConf(step.Commands, goos)
+		scriptEnv, command := common.GenerateContainerConf(step.Commands, goos, config.PodUserHome)
 		container.Command = command
 		maps.Copy(step.Environment, scriptEnv)
 	}

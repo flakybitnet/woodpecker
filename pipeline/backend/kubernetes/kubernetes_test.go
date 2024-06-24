@@ -30,6 +30,7 @@ func TestGettingConfig(t *testing.T) {
 			PodLabels:            map[string]string{"l1": "v1"},
 			PodAnnotations:       map[string]string{"a1": "v1"},
 			ImagePullSecretNames: []string{"regcred"},
+			PodUserHome:          "/woodpecker",
 			SecurityContext: SecurityContextConfig{
 				RunAsNonRoot: false,
 				User:         1000,
@@ -46,6 +47,7 @@ func TestGettingConfig(t *testing.T) {
 	config.PodLabels = nil
 	config.PodAnnotations["a2"] = "v2"
 	config.ImagePullSecretNames = append(config.ImagePullSecretNames, "docker.io")
+	config.PodUserHome = "/home"
 	config.SecurityContext.RunAsNonRoot = true
 	config.SecurityContext.User = 0
 	config.SecurityContext.Group = 0
@@ -59,6 +61,7 @@ func TestGettingConfig(t *testing.T) {
 	assert.Equal(t, 1, len(engine.config.PodLabels))
 	assert.Equal(t, 1, len(engine.config.PodAnnotations))
 	assert.Equal(t, 1, len(engine.config.ImagePullSecretNames))
+	assert.Equal(t, "/woodpecker", engine.config.PodUserHome)
 	assert.Equal(t, false, engine.config.SecurityContext.RunAsNonRoot)
 	assert.Equal(t, 1000, engine.config.SecurityContext.User)
 	assert.Equal(t, 1001, engine.config.SecurityContext.Group)

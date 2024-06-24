@@ -94,6 +94,11 @@ var Flags = []cli.Flag{
 		Usage:   "group under which volumes mount",
 	},
 	&cli.StringFlag{
+		EnvVars: []string{"WOODPECKER_BACKEND_K8S_POD_USER_HOME"},
+		Name:    "backend-k8s-pod-user-home",
+		Usage:   "user's `HOME` in the Pod",
+	},
+	&cli.StringFlag{
 		EnvVars: []string{"WOODPECKER_BACKEND_K8S_PSS_PROFILE"},
 		Name:    "backend-k8s-pss-profile",
 		Usage:   "comply with Kubernetes Pod Security Standards",
