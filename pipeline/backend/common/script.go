@@ -18,7 +18,7 @@ import (
 	"encoding/base64"
 )
 
-func GenerateContainerConf(commands []string, goos string) (env map[string]string, entry []string) {
+func GenerateContainerConf(commands []string, goos, home string) (env map[string]string, entry []string) {
 	env = make(map[string]string)
 	if goos == "windows" {
 		env["CI_SCRIPT"] = base64.StdEncoding.EncodeToString([]byte(generateScriptWindows(commands)))
@@ -31,6 +31,9 @@ func GenerateContainerConf(commands []string, goos string) (env map[string]strin
 		env["HOME"] = "/root"
 		env["SHELL"] = "/bin/sh"
 		entry = []string{"/bin/sh", "-c", "echo $CI_SCRIPT | base64 -d | /bin/sh -e"}
+	}
+	if len(home) > 0 {
+		env["HOME"] = home
 	}
 
 	return env, entry

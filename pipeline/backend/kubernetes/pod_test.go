@@ -594,3 +594,70 @@ func TestSecrets(t *testing.T) {
 	ja := jsonassert.New(t)
 	ja.Assertf(string(podJSON), expected)
 }
+
+func TestPodUserHome(t *testing.T) {
+	expected := `
+	{
+		"metadata": {
+			"name": "wp-01he8bebctabr3kgk0qj36d2me-0",
+			"namespace": "woodpecker",
+			"creationTimestamp": null,
+			"labels": {
+				"step": "user-home"
+			}
+		},
+		"spec": {
+			"containers": [
+				{
+					"name": "wp-01he8bebctabr3kgk0qj36d2me-0",
+					"image": "alpine",
+					"command": [
+						"/bin/sh",
+						"-c",
+						"echo $CI_SCRIPT | base64 -d | /bin/sh -e"
+					],
+					"env": [
+						"<<UNORDERED>>",
+						{
+							"name": "HOME",
+							"value": "/home"
+						},
+						{
+							"name": "SHELL",
+							"value": "/bin/sh"
+						},
+						{
+							"name": "CI",
+							"value": "woodpecker"
+						},
+						{
+							"name": "CI_SCRIPT",
+							"value": "CmlmIFsgLW4gIiRDSV9ORVRSQ19NQUNISU5FIiBdOyB0aGVuCmNhdCA8PEVPRiA+ICRIT01FLy5uZXRyYwptYWNoaW5lICRDSV9ORVRSQ19NQUNISU5FCmxvZ2luICRDSV9ORVRSQ19VU0VSTkFNRQpwYXNzd29yZCAkQ0lfTkVUUkNfUEFTU1dPUkQKRU9GCmNobW9kIDA2MDAgJEhPTUUvLm5ldHJjCmZpCnVuc2V0IENJX05FVFJDX1VTRVJOQU1FCnVuc2V0IENJX05FVFJDX1BBU1NXT1JECnVuc2V0IENJX1NDUklQVAoKZWNobyArICdlY2hvIEhlbGxvJwplY2hvIEhlbGxvCgplY2hvICsgJ2VjaG8gd29ybGQnCmVjaG8gd29ybGQK"
+						}
+					],
+					"resources": {}
+				}
+			],
+			"restartPolicy": "Never"
+		},
+		"status": {}
+	}`
+
+	pod, err := mkPod(&types.Step{
+		Name:        "user-home",
+		Image:       "alpine",
+		Commands:    []string{"echo Hello", "echo world"},
+		Environment: map[string]string{"CI": "woodpecker"},
+	}, &config{
+		Namespace:   "woodpecker",
+		PodUserHome: "/home",
+	}, "wp-01he8bebctabr3kgk0qj36d2me-0", "linux/amd64", BackendOptions{})
+	assert.NoError(t, err)
+
+	podJSON, err := json.Marshal(pod)
+	assert.NoError(t, err)
+
+	ja := jsonassert.New(t)
+	t.Log(string(podJSON))
+	ja.Assertf(string(podJSON), expected)
+}
