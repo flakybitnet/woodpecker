@@ -48,9 +48,10 @@ const (
 var defaultDeleteOptions = newDefaultDeleteOptions()
 
 type kube struct {
-	client kubernetes.Interface
-	config *config
-	goos   string
+	client  kubernetes.Interface
+	config  *config
+	goos    string
+	pssProc *pssProcessor
 }
 
 type config struct {
@@ -65,10 +66,18 @@ type config struct {
 	PodNodeSelector             map[string]string
 	ImagePullSecretNames        []string
 	SecurityContext             SecurityContextConfig
+	PssProfile                  PssProfile
 }
 type SecurityContextConfig struct {
 	RunAsNonRoot bool
 }
+
+type PssProfile string
+
+const (
+	PssProfileBaseline   PssProfile = "baseline"
+	PssProfileRestricted PssProfile = "restricted"
+)
 
 func newDefaultDeleteOptions() meta_v1.DeleteOptions {
 	gracePeriodSeconds := int64(0) // immediately
@@ -94,6 +103,7 @@ func configFromCliContext(ctx context.Context) (*config, error) {
 				PodAnnotationsAllowFromStep: c.Bool("backend-k8s-pod-annotations-allow-from-step"),
 				PodNodeSelector:             make(map[string]string), // just init empty map to prevent nil panic
 				ImagePullSecretNames:        c.StringSlice("backend-k8s-pod-image-pull-secret-names"),
+				PssProfile:                  PssProfile(c.String("backend-k8s-pss-profile")),
 				SecurityContext: SecurityContextConfig{
 					RunAsNonRoot: c.Bool("backend-k8s-secctx-nonroot"), // cspell:words secctx nonroot
 				},
@@ -166,6 +176,8 @@ func (e *kube) Load(ctx context.Context) (*types.BackendInfo, error) {
 	}
 
 	e.client = kubeClient
+
+	e.pssProc = newPssProcessor(e.getConfig())
 
 	// TODO(2693): use info resp of kubeClient to define platform var
 	e.goos = runtime.GOOS

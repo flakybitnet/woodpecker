@@ -524,6 +524,7 @@ func startPod(ctx context.Context, engine *kube, step *types.Step, options Backe
 	if err != nil {
 		return nil, err
 	}
+	engine.pssProc.apply(pod)
 
 	log.Trace().Msgf("creating pod: %s", pod.Name)
 	return engine.client.CoreV1().Pods(engineConfig.Namespace).Create(ctx, pod, meta_v1.CreateOptions{})
