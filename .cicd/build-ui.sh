@@ -11,6 +11,6 @@ echo Building $APP_NAME-$APP_COMPONENT UI
 cd ./web
 corepack enable
 pnpm install --frozen-lockfile
-pnpm build
+retry 2 pnpm build
 
 echo Done
