@@ -425,7 +425,7 @@ func TestPodPrivilege(t *testing.T) {
 	assert.True(t, *pod.Spec.SecurityContext.RunAsNonRoot)
 }
 
-func TestScratchPod(t *testing.T) {
+func TestDefaultSecurityContext(t *testing.T) {
 	expected := `
 	{
 		"metadata": {
@@ -433,33 +433,39 @@ func TestScratchPod(t *testing.T) {
 			"namespace": "woodpecker",
 			"creationTimestamp": null,
 			"labels": {
-				"step": "curl-google"
+				"step": "default-sec-ctx"
 			}
 		},
 		"spec": {
 			"containers": [
 				{
 					"name": "wp-01he8bebctabr3kgk0qj36d2me-0",
-					"image": "quay.io/curl/curl",
-					"command": [
-						"/usr/bin/curl",
-						"-v",
-						"google.com"
-					],
+					"image": "alpine",
 					"resources": {}
 				}
 			],
-			"restartPolicy": "Never"
+			"restartPolicy": "Never",
+			"securityContext": {
+				"runAsUser": 999,
+				"runAsGroup": 1111,
+				"fsGroup": 1111,
+				"runAsNonRoot": true
+			}
 		},
 		"status": {}
 	}`
 
 	pod, err := mkPod(&types.Step{
-		Name:       "curl-google",
-		Image:      "quay.io/curl/curl",
-		Entrypoint: []string{"/usr/bin/curl", "-v", "google.com"},
+		Name:  "default-sec-ctx",
+		Image: "alpine",
 	}, &config{
 		Namespace: "woodpecker",
+		SecurityContext: SecurityContextConfig{
+			RunAsNonRoot: true,
+			User:         999,
+			Group:        1111,
+			FsGroup:      1111,
+		},
 	}, "wp-01he8bebctabr3kgk0qj36d2me-0", "linux/amd64", BackendOptions{})
 	assert.NoError(t, err)
 
@@ -467,6 +473,5 @@ func TestScratchPod(t *testing.T) {
 	assert.NoError(t, err)
 
 	ja := jsonassert.New(t)
-	t.Log(string(podJSON))
 	ja.Assertf(string(podJSON), expected)
 }

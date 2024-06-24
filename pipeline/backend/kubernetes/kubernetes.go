@@ -70,6 +70,9 @@ type config struct {
 }
 type SecurityContextConfig struct {
 	RunAsNonRoot bool
+	User         int
+	Group        int
+	FsGroup      int
 }
 
 type PssProfile string
@@ -106,6 +109,9 @@ func configFromCliContext(ctx context.Context) (*config, error) {
 				PssProfile:                  PssProfile(c.String("backend-k8s-pss-profile")),
 				SecurityContext: SecurityContextConfig{
 					RunAsNonRoot: c.Bool("backend-k8s-secctx-nonroot"), // cspell:words secctx nonroot
+					User:         c.Int("backend-k8s-secctx-user"),
+					Group:        c.Int("backend-k8s-secctx-group"),
+					FsGroup:      c.Int("backend-k8s-secctx-fsgroup"),
 				},
 			}
 			// TODO: remove in next major

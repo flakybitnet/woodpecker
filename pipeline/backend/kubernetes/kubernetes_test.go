@@ -30,8 +30,13 @@ func TestGettingConfig(t *testing.T) {
 			PodLabels:            map[string]string{"l1": "v1"},
 			PodAnnotations:       map[string]string{"a1": "v1"},
 			ImagePullSecretNames: []string{"regcred"},
-			SecurityContext:      SecurityContextConfig{RunAsNonRoot: false},
-			PssProfile:           PssProfileRestricted,
+			SecurityContext: SecurityContextConfig{
+				RunAsNonRoot: false,
+				User:         1000,
+				Group:        1001,
+				FsGroup:      1002,
+			},
+			PssProfile: PssProfileRestricted,
 		},
 	}
 	config := engine.getConfig()
@@ -42,6 +47,9 @@ func TestGettingConfig(t *testing.T) {
 	config.PodAnnotations["a2"] = "v2"
 	config.ImagePullSecretNames = append(config.ImagePullSecretNames, "docker.io")
 	config.SecurityContext.RunAsNonRoot = true
+	config.SecurityContext.User = 0
+	config.SecurityContext.Group = 0
+	config.SecurityContext.FsGroup = 0
 	config.PssProfile = PssProfileBaseline
 
 	assert.Equal(t, "default", engine.config.Namespace)
@@ -52,5 +60,8 @@ func TestGettingConfig(t *testing.T) {
 	assert.Equal(t, 1, len(engine.config.PodAnnotations))
 	assert.Equal(t, 1, len(engine.config.ImagePullSecretNames))
 	assert.Equal(t, false, engine.config.SecurityContext.RunAsNonRoot)
+	assert.Equal(t, 1000, engine.config.SecurityContext.User)
+	assert.Equal(t, 1001, engine.config.SecurityContext.Group)
+	assert.Equal(t, 1002, engine.config.SecurityContext.FsGroup)
 	assert.Equal(t, PssProfileRestricted, engine.config.PssProfile)
 }

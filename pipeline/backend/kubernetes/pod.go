@@ -389,6 +389,15 @@ func podSecurityContext(sc *SecurityContext, secCtxConf SecurityContextConfig, s
 	if secCtxConf.RunAsNonRoot {
 		nonRoot = newBool(true)
 	}
+	if secCtxConf.User > 0 {
+		user = newInt64(int64(secCtxConf.User))
+	}
+	if secCtxConf.Group > 0 {
+		group = newInt64(int64(secCtxConf.Group))
+	}
+	if secCtxConf.FsGroup > 0 {
+		fsGroup = newInt64(int64(secCtxConf.FsGroup))
+	}
 
 	if sc != nil {
 		// only allow to set user if its not root or step is privileged
