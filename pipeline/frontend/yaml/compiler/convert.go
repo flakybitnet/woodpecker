@@ -16,6 +16,7 @@ package compiler
 
 import (
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"maps"
 	"path"
 	"strconv"
@@ -85,7 +86,7 @@ func (c *Compiler) createProcess(container *yaml_types.Container, stepType backe
 	}
 
 	if !detached || len(container.Commands) != 0 {
-		workingDir = c.stepWorkingDir(container)
+		workingDir = c.stepWorkingDir(container, stepType)
 	}
 
 	getSecretValue := func(name string) (string, error) {
@@ -218,11 +219,16 @@ func (c *Compiler) createProcess(container *yaml_types.Container, stepType backe
 	}, nil
 }
 
-func (c *Compiler) stepWorkingDir(container *yaml_types.Container) string {
-	if path.IsAbs(container.Directory) {
-		return container.Directory
+func (c *Compiler) stepWorkingDir(container *yaml_types.Container, stepType backend_types.StepType) string {
+	workDir := path.Join(c.base, c.path, container.Directory)
+	if stepType == backend_types.StepTypeClone {
+		workDir = c.base
 	}
-	return path.Join(c.base, c.path, container.Directory)
+	if path.IsAbs(container.Directory) {
+		workDir = container.Directory
+	}
+	log.Trace().Msgf("using working directory: %s", workDir)
+	return workDir
 }
 
 func convertPort(portDef string) (backend_types.Port, error) {
