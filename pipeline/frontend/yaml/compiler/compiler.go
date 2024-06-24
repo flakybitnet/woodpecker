@@ -154,6 +154,11 @@ func (c *Compiler) Compile(conf *yaml_types.Workflow) (*backend_types.Config, er
 		})
 	}
 
+	// skip forge path when there is no clone step
+	if conf.SkipClone {
+		c.workspacePath = ""
+	}
+
 	// overrides the default workspace paths when specified
 	// in the YAML file.
 	if len(conf.Workspace.Base) != 0 {
