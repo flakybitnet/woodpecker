@@ -36,6 +36,7 @@ var Config = struct {
 		Membership cache.MembershipService
 		Manager    services.Manager
 		LogStore   log.Service
+		Encryption encryption.EncryptionService
 	}
 	Server struct {
 		Key                 string

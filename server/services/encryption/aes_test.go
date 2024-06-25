@@ -22,8 +22,7 @@ import (
 )
 
 func TestShortMessageLongKey(t *testing.T) {
-	aes := &aesEncryptionService{}
-	err := aes.loadCipher(string(random.GetRandomBytes(32)))
+	aes, err := NewAes(string(random.GetRandomBytes(32)))
 	assert.NoError(t, err)
 
 	input := string(random.GetRandomBytes(4))
@@ -36,8 +35,7 @@ func TestShortMessageLongKey(t *testing.T) {
 }
 
 func TestLongMessageShortKey(t *testing.T) {
-	aes := &aesEncryptionService{}
-	err := aes.loadCipher(string(random.GetRandomBytes(12)))
+	aes, err := NewAes(string(random.GetRandomBytes(12)))
 	assert.NoError(t, err)
 
 	input := string(random.GetRandomBytes(1024))
@@ -47,4 +45,15 @@ func TestLongMessageShortKey(t *testing.T) {
 	output, err := aes.Decrypt(cipher, "")
 	assert.NoError(t, err)
 	assert.Equal(t, input, output)
+}
+
+func TestAdditionalInfoMismatch(t *testing.T) {
+	aes, err := NewAes(string(random.GetRandomBytes(32)))
+	assert.Nil(t, err)
+
+	cipher, err := aes.Encrypt("secret value", "id1")
+	assert.Nil(t, err)
+
+	_, err = aes.Decrypt(cipher, "id2")
+	assert.ErrorContains(t, err, "cipher: message authentication failed")
 }
