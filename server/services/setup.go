@@ -21,6 +21,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"go.woodpecker-ci.org/woodpecker/v2/server/services/encryption"
 	"strings"
 
 	"github.com/rs/zerolog/log"
@@ -45,16 +46,28 @@ func setupRegistryService(store store.Store, dockerConfig string) registry.Servi
 	return registry.NewDB(store)
 }
 
-func setupSecretService(store store.Store) secret.Service {
-	// TODO(1544): fix encrypted store
-	// // encryption
-	// encryptedSecretStore := encryptedStore.NewSecretStore(v)
-	// err := encryption.Encryption(c, v).WithClient(encryptedSecretStore).Build()
-	// if err != nil {
-	// 	log.Fatal().Err(err).Msg("could not create encryption service")
-	// }
+func setupSecretService(c *cli.Context, store store.Store) (secret.Service, error) {
+	secretSvc := secret.NewDB(store)
 
-	return secret.NewDB(store)
+	aesKey := c.String("secrets-encryption-aes-key")
+	if aesKey == "" {
+		return secretSvc, nil
+	}
+
+	encSvc, err := encryption.NewAes(aesKey)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to set up secrets encryption service")
+		return secretSvc, nil
+	}
+
+	encryptedSecretService := secret.NewEncrypted(secretSvc, encSvc)
+	migrationAgent := secret.NewMigration(encryptedSecretService, store)
+	err = migrationAgent.EncryptAll()
+	if err != nil {
+		return nil, err
+	}
+
+	return encryptedSecretService, nil
 }
 
 func setupConfigService(c *cli.Context, privateSignatureKey crypto.PrivateKey) (config.Service, error) {

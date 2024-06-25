@@ -280,8 +280,6 @@ func setupEvilGlobals(c *cli.Context, s store.Store) error {
 	if err != nil {
 		return fmt.Errorf("could not setup log store: %w", err)
 	}
-	server.Config.Services.Encryption = setupEncryptionService(c)
-	server.Config.Services.Secrets = setupSecretService(c, s)
 
 	// authentication
 	server.Config.Pipeline.AuthenticatePublicRepos = c.Bool("authenticate-public-repos")

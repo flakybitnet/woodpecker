@@ -19,11 +19,11 @@ import (
 	"crypto/cipher"
 	"encoding/base64"
 	"fmt"
+
+	"github.com/google/tink/go/subtle/random"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/crypto/sha3"
-
-	"github.com/google/tink/go/subtle/random"
 )
 
 const (
@@ -37,27 +37,27 @@ type aesEncryptionService struct {
 	cipher cipher.AEAD
 }
 
-func NewAes(password string) (EncryptionService, error) {
-	log.Debug().Msg("initializing AES encryption service")
+func NewAes(password string) (Service, error) {
+	log.Info().Msg("initializing AES encryption service")
 
 	key, err := hash([]byte(password))
 	if err != nil {
-		return nil, NewKeyGenerationError(err)
+		return nil, newKeyGenerationError(err)
 	}
 
 	keyHash, err := bcrypt.GenerateFromPassword(key, bcrypt.DefaultCost)
 	if err != nil {
-		return nil, NewKeyGenerationIdError(err)
+		return nil, newKeyGenerationIdError(err)
 	}
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		return nil, NewCipherLoadingError(err)
+		return nil, newCipherLoadingError(err)
 	}
 
 	aead, err := cipher.NewGCM(block)
 	if err != nil {
-		return nil, NewCipherLoadingError(err)
+		return nil, newCipherLoadingError(err)
 	}
 
 	service := aesEncryptionService{
@@ -65,7 +65,7 @@ func NewAes(password string) (EncryptionService, error) {
 		cipher: aead,
 	}
 
-	log.Debug().Msg("AES encryption service has been initialized")
+	log.Info().Msg("AES encryption service has been initialized")
 	return &service, nil
 }
 
@@ -75,11 +75,11 @@ func hash(data []byte) ([]byte, error) {
 
 	_, err := sha.Write(data)
 	if err != nil {
-		return nil, NewHashCalculationError(err)
+		return nil, newHashCalculationError(err)
 	}
 	_, err = sha.Read(result)
 	if err != nil {
-		return nil, NewHashCalculationError(err)
+		return nil, newHashCalculationError(err)
 	}
 	return result, nil
 }
@@ -92,10 +92,10 @@ func (svc *aesEncryptionService) Encrypt(plaintext, associatedData string) (stri
 	msg := []byte(plaintext)
 	aad := []byte(associatedData)
 
-	nonce := random.GetRandomBytes(uint32(AES_GCM_SIV_NonceSize))
+	nonce := random.GetRandomBytes(uint32(AESGCMSIVNonceSize))
 	ciphertext := svc.cipher.Seal(nil, nonce, msg, aad)
 
-	result := make([]byte, 0, AES_GCM_SIV_NonceSize+len(ciphertext))
+	result := make([]byte, 0, AESGCMSIVNonceSize+len(ciphertext))
 	result = append(result, nonce...)
 	result = append(result, ciphertext...)
 
@@ -105,39 +105,39 @@ func (svc *aesEncryptionService) Encrypt(plaintext, associatedData string) (stri
 func (svc *aesEncryptionService) Decrypt(ciphertext, associatedData string) (string, error) {
 	bytes, err := base64.RawStdEncoding.DecodeString(ciphertext)
 	if err != nil {
-		return "", NewBase64DecryptionError(err)
+		return "", newBase64DecryptionError(err)
 	}
 
-	nonce := bytes[:AES_GCM_SIV_NonceSize]
-	message := bytes[AES_GCM_SIV_NonceSize:]
+	nonce := bytes[:AESGCMSIVNonceSize]
+	message := bytes[AESGCMSIVNonceSize:]
 
 	plaintext, err := svc.cipher.Open(nil, nonce, message, []byte(associatedData))
 	if err != nil {
-		return "", NewDecryptionError(err)
+		return "", newDecryptionError(err)
 	}
 	return string(plaintext), nil
 }
 
-func NewHashCalculationError(e error) error {
+func newHashCalculationError(e error) error {
 	return fmt.Errorf("failed calculating hash: %w", e)
 }
 
-func NewKeyGenerationError(e error) error {
+func newKeyGenerationError(e error) error {
 	return fmt.Errorf("failed generating key from passphrase: %w", e)
 }
 
-func NewKeyGenerationIdError(e error) error {
+func newKeyGenerationIdError(e error) error {
 	return fmt.Errorf("failed generating key id: %w", e)
 }
 
-func NewCipherLoadingError(e error) error {
+func newCipherLoadingError(e error) error {
 	return fmt.Errorf("failed loading encryption cipher: %w", e)
 }
 
-func NewBase64DecryptionError(e error) error {
+func newBase64DecryptionError(e error) error {
 	return fmt.Errorf("Base64 decryption failed: %w", e)
 }
 
-func NewDecryptionError(e error) error {
+func newDecryptionError(e error) error {
 	return fmt.Errorf("decryption error: %w", e)
 }

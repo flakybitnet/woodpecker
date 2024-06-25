@@ -14,7 +14,7 @@
 
 package encryption
 
-type EncryptionService interface {
+type Service interface {
 	Algo() string
 	Encrypt(plaintext, associatedData string) (string, error)
 	Decrypt(ciphertext, associatedData string) (string, error)

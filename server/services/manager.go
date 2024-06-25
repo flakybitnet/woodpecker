@@ -77,11 +77,16 @@ func NewManager(c *cli.Context, store store.Store, setupForge SetupForge) (Manag
 		return nil, err
 	}
 
+	secretService, err := setupSecretService(c, store)
+	if err != nil {
+		return nil, err
+	}
+
 	return &manager{
 		signaturePrivateKey: signaturePrivateKey,
 		signaturePublicKey:  signaturePublicKey,
 		store:               store,
-		secret:              setupSecretService(store),
+		secret:              secretService,
 		registry:            setupRegistryService(store, c.String("docker-config")),
 		config:              configService,
 		environment:         environment.Parse(c.StringSlice("environment")),

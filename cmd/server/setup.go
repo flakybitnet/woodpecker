@@ -18,7 +18,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"go.woodpecker-ci.org/woodpecker/v2/server/model"
 	"os"
 	"time"
 
@@ -165,24 +164,4 @@ func setupLogStore(c *cli.Context, s store.Store) (logService.Service, error) {
 	default:
 		return s, nil
 	}
-}
-
-func setupEncryptionService(ctx *cli.Context) encryption.EncryptionService {
-	if aesKey := ctx.String("encryption-aes-key"); aesKey != "" {
-		encSvc, err := encryption.NewAes(aesKey)
-		if err != nil {
-			log.Fatal().Err(err).Msg("failed to set up AES encryption service")
-		}
-		return encSvc
-	}
-
-	return nil
-}
-
-func setupSecretService(ctx *cli.Context, store model.SecretStore) model.SecretService {
-	secretSvc, err := secrets.NewService(ctx, store)
-	if err != nil {
-		log.Fatal().Err(err).Msg("failed to set up secrets service")
-	}
-	return secretSvc
 }

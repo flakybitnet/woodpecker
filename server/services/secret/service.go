@@ -14,6 +14,8 @@
 
 package secret
 
+//go:generate mockery --name Service --output mocks --case underscore
+
 import "go.woodpecker-ci.org/woodpecker/v2/server/model"
 
 // Service defines a service for managing secrets.
