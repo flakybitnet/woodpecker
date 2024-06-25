@@ -1,94 +1,143 @@
 # Woodpecker
 
-<p align="center">
-  <a href="https://github.com/woodpecker-ci/woodpecker/">
-    <img alt="Woodpecker" src="docs/static/img/logo.svg" width="220"/>
-  </a>
-</p>
-<br/>
-<p align="center">
-  <a href="https://ci.woodpecker-ci.org/repos/3780" title="Pipeline Status">
-    <img src="https://ci.woodpecker-ci.org/api/badges/3780/status.svg" alt="Pipeline Status">
-  </a>
-  <a href="https://codecov.io/gh/woodpecker-ci/woodpecker">
-    <img src="https://codecov.io/gh/woodpecker-ci/woodpecker/branch/main/graph/badge.svg" alt="Code coverage">
-  </a>
-  <a href="https://translate.woodpecker-ci.org/engage/woodpecker-ci/">
-    <img src="https://translate.woodpecker-ci.org/widgets/woodpecker-ci/-/ui/svg-badge.svg" alt="Translation status" />
-  </a>
-  <a href="https://matrix.to/#/#woodpecker:matrix.org" title="Join the Matrix space at https://matrix.to/#/#woodpecker:matrix.org">
-    <img src="https://img.shields.io/matrix/woodpecker:matrix.org?label=matrix" alt="Matrix space">
-  </a>
-  <a href="https://goreportcard.com/report/go.woodpecker-ci.org/woodpecker/v2" title="Go Report Card">
-    <img src="https://goreportcard.com/badge/go.woodpecker-ci.org/woodpecker/v2" alt="Go Report Card">
-  </a>
-  <a href="https://pkg.go.dev/go.woodpecker-ci.org/woodpecker/v2" title="go reference">
-    <img src="https://pkg.go.dev/badge/go.woodpecker-ci.org/woodpecker/v2" alt="go reference">
-  </a>
-  <a href="https://github.com/woodpecker-ci/woodpecker/releases/latest" title="GitHub release">
-    <img src="https://img.shields.io/github/v/release/woodpecker-ci/woodpecker?sort=semver" alt="GitHub release">
-  </a>
-  <a href="https://hub.docker.com/r/woodpeckerci/woodpecker-server" title="Docker pulls">
-    <img src="https://img.shields.io/docker/pulls/woodpeckerci/woodpecker-server" alt="Docker pulls">
-  </a>
-  <a href="https://opensource.org/licenses/Apache-2.0" title="License: Apache-2.0">
-    <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" alt="License: Apache-2.0">
-  </a>
-  <a href="https://bestpractices.coreinfrastructure.org/projects/5309">
-    <img src="https://bestpractices.coreinfrastructure.org/projects/5309/badge" alt="OpenSSF best practices">
-  </a>
-  <a href="https://results.pre-commit.ci/repo/github/179344069" title="pre-commit.ci">
-    <img src="https://results.pre-commit.ci/badge/github/woodpecker-ci/woodpecker/main.svg" alt="pre-commit.ci">
-  </a>
-</p>
-<br/>
-
 Woodpecker is a simple yet powerful CI/CD engine with great extensibility.
 
-![woodpecker](docs/docs/woodpecker.png)
+## What is this?
 
-## 🫶 Support
+This is a fork of [Woodpecker CI](https://github.com/woodpecker-ci/woodpecker) with the following changes:
 
-Please consider donating and become a backer. 🙏 [[Become a backer](https://opencollective.com/woodpecker-ci#category-CONTRIBUTE)]
+1. It is based on top of the stable releases with back-porting.
+2. It supports running the workload in Kubernetes [restricted](https://kubernetes.io/docs/concepts/security/pod-security-standards) environment.
+3. It supports secrets encryption.
+4. It maintains self-cleanup tasks.
 
-<a href="https://opencollective.com/woodpecker-ci" target="_blank"><img src="https://opencollective.com/woodpecker-ci/backers.svg?width=890" alt="Open Collective backers"></a>
+## Release cadence
 
-## 📖 Documentation
+This fork maintains pace with upstream Woodpecker releases.
+There is no predefined schedule, new versions are released as they are ready.
 
-<https://woodpecker-ci.org/>
+Our release versioning reflects the version of upstream Woodpecker that is being released. 
+For example, the release `v2.6.0+fb1` maps to the `v2.6.0` Woodpecker release. 
+We add a postfix in the form of `+fb<number>` to allow us to make additional releases using the same version of upstream Woodpecker. 
+For example, if a some bug was fixed in the upstream `main`, we could release `v2.6.0+fb2`.
 
-## ✨ Contribute
+## Images
 
-See [Contributing Guide](https://github.com/woodpecker-ci/.github/blob/main/CONTRIBUTING.md)
+The OCI images are available at
+* **Quay**
+  * [Server](https://quay.io/repository/flakybitnet/woodpecker-server)
+  * [Agent](https://quay.io/repository/flakybitnet/woodpecker-agent)
+  * [CLI](https://quay.io/repository/flakybitnet/woodpecker-cli)
+* **GHCR**
+  * [Server](https://github.com/flakybitnet/woodpecker/pkgs/container/woodpecker-server)
+  * [Agent](https://github.com/flakybitnet/woodpecker/pkgs/container/woodpecker-agent)
+  * [CLI](https://github.com/flakybitnet/woodpecker/pkgs/container/woodpecker-cli)
+* **AWS ECR Public**
+  * [Server](https://gallery.ecr.aws/flakybitnet/woodpecker/server)
+  * [Agent](https://gallery.ecr.aws/flakybitnet/woodpecker/agent)
+  * [CLI](https://gallery.ecr.aws/flakybitnet/woodpecker/cli)
+* **FlakyBit's Harbor**
+  * Server: `harbor.flakybit.net/woodpecker/server:<version>`
+  * Agent: `harbor.flakybit.net/woodpecker/agent:<version>`
+  * CLI: `harbor.flakybit.net/woodpecker/cli:<version>`
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://woodpecker-ci.org/docs/next/development/getting-started#gitpod)
+## Documentation
 
-## 📣 Translate
+Please see [the official docs site](https://woodpecker-ci.org/docs/intro) for complete documentation.
 
-We use an own [Weblate](https://weblate.org/en/) instance at [translate.woodpecker-ci.org](https://translate.woodpecker-ci.org).
+### Restricted environment
 
-<a href="https://translate.woodpecker-ci.org/engage/woodpecker-ci/">
-  <img src="https://translate.woodpecker-ci.org/widgets/woodpecker-ci/-/ui/multi-blue.svg" alt="Translation status" />
-</a>
+You can run the workload (pipelines) in namespace with `restricted` [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/).
+In order to achieve this, you should:
 
-## 👋 Who uses Woodpecker?
+1. Label Woodpecker runtime namespace
 
-Woodpecker is used by [itself](https://ci.woodpecker-ci.org/woodpecker/woodpecker-ci/), multiple well-known companies, organizations like [Codeberg](https://codeberg.org), hobbyists and many others.
+   ```
+   apiVersion: v1
+   kind: Namespace
+   metadata:
+     name: wp-workload
+     labels:
+       pod-security.kubernetes.io/audit: restricted
+       pod-security.kubernetes.io/enforce: restricted
+       pod-security.kubernetes.io/warn: restricted
+   ```
 
-Leave a [comment](https://github.com/woodpecker-ci/woodpecker/discussions/2149) if you're using it as well.
+2. In Agent config set PSS profile and steps to run unprivileged
 
-Also consider using the topic `WoodpeckerCI` in your repository, so others can learn from your config and use the hashtag `#WoodpeckerCI` when talking about the project on social media!
+   ```
+   WOODPECKER_BACKEND_K8S_PSS_PROFILE: restricted
+   WOODPECKER_BACKEND_K8S_SECCTX_NONROOT: "true"
+   WOODPECKER_BACKEND_K8S_SECCTX_USER: "1001"
+   WOODPECKER_BACKEND_K8S_SECCTX_GROUP: "1001"
+   WOODPECKER_BACKEND_K8S_SECCTX_FSGROUP: "1001"
+   WOODPECKER_BACKEND_K8S_POD_USER_HOME: /woodpecker
+   ```
+   
+   User and group are matter of your choice.
 
-Here are some places where people mention Woodpecker:
+3. In Server config set fixed `plugin-git`
 
-- [GitHub](https://github.com/topics/WoodpeckerCI)
-- [Codeberg](https://codeberg.org/explore/repos?q=woodpeckerci&topic=1)
-- [Twitter](https://twitter.com/search?q=%23WoodpeckerCI&src=typed_query)
-- [Fediverse](https://mastodon.social/tags/WoodpeckerCI)
+   ```
+   WOODPECKER_DEFAULT_CLONE_IMAGE: harbor.flakybit.net/woodpecker/plugin-git:v2.5.0-fb1
+   ```
 
-## ✨ Stars over time
+---
 
-[![Stargazers over time](https://starchart.cc/woodpecker-ci/woodpecker.svg)](https://starchart.cc/woodpecker-ci/woodpecker)
+Upstream issues:
+ * [Add support for nonroot OCI images](https://github.com/woodpecker-ci/woodpecker/issues/1077)
+ * [Add the ability to override default env variables for Kubernetes pipeline steps](https://github.com/woodpecker-ci/woodpecker/issues/3164)
+ * [Cannot run pipeline on Kubernetes: CreateContainerError](https://github.com/woodpecker-ci/woodpecker/issues/2510)
+
+### Secrets encryption
+
+Based on upstream [AES secrets encryption](https://github.com/woodpecker-ci/woodpecker/pull/2300).
+
+This is **_one-way_** operation. You cannot revert back storing secrets in database as plain text.
+
+**_Make a backup!_**
+
+In order to encrypt secrets set `WOODPECKER_SECRETS_ENCRYPTION_AES_KEY` with AES key.
+You can generate the key using `openssl rand -base64 32`.
+
+### Cleanup tasks
+
+#### Stale agents
+
+In order to clean stale Agents, in the Server config set `WOODPECKER_MAINTENANCE_CLEANUP_AGENTS_OLDER_THAN` with retention duration.
+
+For example
+```
+WOODPECKER_MAINTENANCE_CLEANUP_AGENTS_OLDER_THAN=24h
+```
+will delete Agents last contacted more than 24 hour ago.
+
+Upstream issue: [Agents cleaning](https://github.com/woodpecker-ci/woodpecker/issues/3023).
+
+#### Pipeline logs
+
+In order to clean old pipeline logs, in the Server config set `WOODPECKER_MAINTENANCE_CLEANUP_PIPELINE_LOGS_OLDER_THAN` with retention duration.
+
+For example
+```
+WOODPECKER_MAINTENANCE_CLEANUP_PIPELINE_LOGS_OLDER_THAN=720h
+```
+will delete logs of pipelines created more than 30 days ago.
+
+Upstream issue: [Delete old pipeline logs after X days or Y new runs](https://github.com/woodpecker-ci/woodpecker/issues/1068).
+
+#### Stale K8s resources
+
+If the Agent crashed while pipeline run, there will be abandoned Pod, PVC and maybe Service.
+In order to clean stale resources, in the Agent config set `WOODPECKER_BACKEND_K8S_MAINTENANCE_CLEANUP_RESOURCES_OLDER_THAN` with retention duration.
+
+For example
+```
+WOODPECKER_BACKEND_K8S_MAINTENANCE_CLEANUP_RESOURCES_OLDER_THAN=12h
+```
+will delete Kubernetes resources in the Agent's namespace created more than 12 hours ago.
+
+The task runs once at the Agent startup.
 
 ## License
 
