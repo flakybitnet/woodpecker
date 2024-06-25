@@ -490,24 +490,14 @@ var flags = append([]cli.Flag{
 		Hidden:  true,
 	},
 	//
-	// secrets encryption in DB
+	// secrets encryption
 	//
 	&cli.StringFlag{
 		Sources: cli.NewValueSourceChain(
-			cli.File(os.Getenv("WOODPECKER_ENCRYPTION_KEY_FILE")),
-			cli.EnvVar("WOODPECKER_ENCRYPTION_KEY")),
-		Name:  "encryption-raw-key",
-		Usage: "Raw encryption key",
-	},
-	&cli.StringFlag{
-		Sources: cli.EnvVars("WOODPECKER_ENCRYPTION_TINK_KEYSET_FILE"),
-		Name:    "encryption-tink-keyset",
-		Usage:   "Google tink AEAD-compatible keyset file to encrypt secrets in DB",
-	},
-	&cli.BoolFlag{
-		Sources: cli.EnvVars("WOODPECKER_ENCRYPTION_DISABLE"),
-		Name:    "encryption-disable-flag",
-		Usage:   "Flag to decrypt all encrypted data and disable encryption on server",
+			cli.File(os.Getenv("WOODPECKER_SECRETS_ENCRYPTION_AES_KEY_FILE")),
+			cli.EnvVar("WOODPECKER_SECRETS_ENCRYPTION_AES_KEY")),
+		Name:  "secrets-encryption-aes-key",
+		Usage: "secrets encryption AES key",
 	},
 }, logger.GlobalLoggerFlags...)
 
