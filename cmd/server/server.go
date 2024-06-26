@@ -105,6 +105,15 @@ func run(c *cli.Context) error {
 		return cron.Start(c.Context, _store)
 	})
 
+	g.Go(func() error {
+		gocron, err := cron.NewCron(c, _store)
+		if err == nil {
+			gocron.Start()
+		}
+		log.Info().Msg("maintenance cron scheduler is initialized")
+		return err
+	})
+
 	// start the grpc server
 	g.Go(func() error {
 		lis, err := net.Listen("tcp", c.String("grpc-addr"))
