@@ -15,6 +15,7 @@
 package cron
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -35,6 +36,10 @@ const (
 
 	cleanupStaleAgentsSchedule = 1 * time.Hour
 	cleanupStaleAgentsId       = "cleanupStaleAgents"
+
+	cleanupPipelineLogsSchedule        = 1 * time.Hour
+	cleanupPipelineLogsId              = "cleanupPipelineLogs"
+	cleanupPipelineLogsMessageTemplate = "Deleted by cleanup task, retention %s"
 )
 
 type Cron struct {
@@ -60,6 +65,10 @@ func (c *Cron) Start() {
 	if agentsRetention != "" {
 		c.setupStaleAgentsCleanup(agentsRetention)
 	}
+	logsRetention := c.cmd.String("maintenance-cleanup-pipeline-logs-older-than")
+	if logsRetention != "" {
+		c.setupPipelineLogsCleanup(logsRetention)
+	}
 	c.scheduler.Start()
 }
 
@@ -81,6 +90,28 @@ func (c *Cron) setupStaleAgentsCleanup(retentionStr string) {
 	}
 
 	log.Info().Str("task", cleanupStaleAgentsId).
+		Str("retention", retention.String()).
+		Msg(maintenanceTaskInitializedMessage)
+}
+
+func (c *Cron) setupPipelineLogsCleanup(retentionStr string) {
+	log.Debug().Str("task", cleanupPipelineLogsId).Msg(maintenanceTaskInitializingMessage)
+
+	retention, err := time.ParseDuration(retentionStr)
+	if err != nil {
+		log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg(maintenanceTaskInitializeFailedMessage)
+		return
+	}
+
+	jobDef := gocron.DurationJob(cleanupPipelineLogsSchedule)
+	task := gocron.NewTask(cleanupPipelineLogs, c.store, retention)
+	_, err = c.scheduler.NewJob(jobDef, task)
+	if err != nil {
+		log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg(maintenanceTaskInitializeFailedMessage)
+		return
+	}
+
+	log.Info().Str("task", cleanupPipelineLogsId).
 		Str("retention", retention.String()).
 		Msg(maintenanceTaskInitializedMessage)
 }
@@ -111,4 +142,62 @@ func cleanupStaleAgents(store store.Store, retention time.Duration) {
 	}
 
 	log.Debug().Str("task", cleanupStaleAgentsId).Msg(maintenanceTaskCompletedMessage)
+}
+
+func cleanupPipelineLogs(store store.Store, retention time.Duration) {
+	log.Debug().Str("task", cleanupPipelineLogsId).Msg(maintenanceTaskStartedMessage)
+
+	repos, err := store.RepoListAll(true, &model.ListOptions{All: true})
+	if err != nil {
+		log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg("failed to get repo list")
+		return
+	}
+	for _, repo := range repos {
+		pipelines, err := store.GetPipelineList(repo, &model.ListOptions{All: true}, nil)
+		if err != nil {
+			log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg("failed to get pipeline list")
+			continue
+		}
+
+		for _, pipeline := range pipelines {
+			created := time.Unix(pipeline.Created, 0)
+			if time.Since(created) > retention {
+				steps, err := store.StepList(pipeline)
+				if err != nil {
+					log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg("failed to get step list")
+					continue
+				}
+
+				for _, step := range steps {
+					logs, err := store.LogFind(step)
+					if err != nil {
+						log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg("failed to get logs")
+						continue
+					}
+
+					if len(logs) > 0 {
+						log.Debug().
+							Str("pipelineId", strconv.FormatInt(pipeline.ID, 10)).
+							Str("stepId", strconv.FormatInt(step.ID, 10)).
+							Msg("deleting pipeline logs")
+						err := store.LogDelete(step)
+						if err != nil {
+							log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg("failed to delete logs")
+							continue
+						}
+
+						firstEntry := logs[0]
+						firstEntry.Data = []byte(fmt.Sprintf(cleanupPipelineLogsMessageTemplate, retention))
+						err = store.LogAppend(firstEntry)
+						if err != nil {
+							log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg("failed to add log stub")
+							continue
+						}
+					}
+				}
+			}
+		}
+	}
+
+	log.Debug().Str("task", cleanupPipelineLogsId).Msg(maintenanceTaskCompletedMessage)
 }
