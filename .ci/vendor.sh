@@ -2,8 +2,7 @@
 set -eu
 
 set -a
-. .cicd/env
-. .cicd/functions.sh
+. .ci/lib.sh
 set +a
 
 echo Vendoring $APP_NAME

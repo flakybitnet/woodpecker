@@ -2,11 +2,10 @@
 set -eu
 
 set -a
-. .cicd/env
-. .cicd/functions.sh
+. .ci/lib.sh
 set +a
 
-echo Building $APP_NAME-$APP_COMPONENT
+echo "Building $APP_NAME-$APP_COMPONENT"
 
 export GOPATH='/woodpecker/go'
 export CGO_ENABLED=0
@@ -19,4 +18,4 @@ go build -v -ldflags "-s -w $xldflags" -o "dist/$APP_COMPONENT" "go.woodpecker-c
 mkdir -p ./dist/etc
 ls -lh ./dist
 
-echo Done
+echo 'Done'
