@@ -25,11 +25,11 @@ require (
 	github.com/drone/envsubst v1.0.3
 	github.com/expr-lang/expr v1.16.9
 	github.com/franela/goblin v0.0.0-20211003143422-0a4f594942bf
-	github.com/fsnotify/fsnotify v1.7.0
 	github.com/getkin/kin-openapi v0.126.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/gitsight/go-vcsurl v1.0.1
 	github.com/go-ap/httpsig v0.0.0-20221203064646-3647b4d88fdf
+	github.com/go-co-op/gocron/v2 v2.7.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/go-github/v63 v63.0.0
@@ -139,6 +139,7 @@ require (
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/invopop/yaml v0.3.1 // indirect
+	github.com/jonboulle/clockwork v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/julienschmidt/httprouter v1.3.0 // indirect
@@ -171,6 +172,7 @@ require (
 	github.com/prometheus/common v0.48.0 // indirect
 	github.com/prometheus/procfs v0.12.0 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
@@ -184,6 +186,7 @@ require (
 	github.com/zeebo/blake3 v0.2.3 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
 	golang.org/x/time v0.5.0 // indirect

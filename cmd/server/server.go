@@ -124,6 +124,15 @@ func run(ctx context.Context, c *cli.Command) error {
 		return nil
 	})
 
+	serviceWaitingGroup.Go(func() error {
+		gocron, err := cron.NewCron(c, _store)
+		if err == nil {
+			gocron.Start()
+		}
+		log.Info().Msg("maintenance cron scheduler is initialized")
+		return err
+	})
+
 	// start the grpc server
 	serviceWaitingGroup.Go(func() error {
 		log.Info().Msg("starting grpc server ...")

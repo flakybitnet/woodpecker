@@ -499,6 +499,15 @@ var flags = append([]cli.Flag{
 		Name:  "secrets-encryption-aes-key",
 		Usage: "secrets encryption AES key",
 	},
+	//
+	// maintenance
+	//
+	&cli.StringFlag{
+		Sources: cli.EnvVars("WOODPECKER_MAINTENANCE_CLEANUP_AGENTS_OLDER_THAN"),
+		Name:    "maintenance-cleanup-agents-older-than",
+		Usage:   "agent last contacted more than OLDER_THAN ago is subject to deletion",
+		Value:   "",
+	},
 }, logger.GlobalLoggerFlags...)
 
 // If woodpecker is running inside a container the default value for
