@@ -466,6 +466,12 @@ var flags = append([]cli.Flag{
 		Usage:   "agent last contacted more than OLDER_THAN ago is subject to deletion",
 		Value:   "",
 	},
+	&cli.StringFlag{
+		EnvVars: []string{"WOODPECKER_MAINTENANCE_CLEANUP_PIPELINE_LOGS_OLDER_THAN"},
+		Name:    "maintenance-cleanup-pipeline-logs-older-than",
+		Usage:   "pipeline logs created more than OLDER_THAN ago is subject to deletion",
+		Value:   "",
+	},
 }, logger.GlobalLoggerFlags...)
 
 // If woodpecker is running inside a container the default value for
