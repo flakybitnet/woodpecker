@@ -88,7 +88,7 @@ func (c *Cron) setupStaleAgentsCleanup(retentionStr string) {
 		return
 	}
 
-	log.Debug().Str("task", cleanupStaleAgentsId).
+	log.Info().Str("task", cleanupStaleAgentsId).
 		Str("retention", retention.String()).
 		Msg(maintenanceTaskInitializedMessage)
 }
@@ -110,7 +110,7 @@ func (c *Cron) setupPipelineLogsCleanup(retentionStr string) {
 		return
 	}
 
-	log.Debug().Str("task", cleanupPipelineLogsId).
+	log.Info().Str("task", cleanupPipelineLogsId).
 		Str("retention", retention.String()).
 		Msg(maintenanceTaskInitializedMessage)
 }

@@ -21,7 +21,7 @@ when:
   - branch: main
     event:
       - manual
-    evaluate: 'SKIP_COMPONENT != APP_COMPONENT'
+    evaluate: 'RUN_COMPONENTS == "" || APP_COMPONENT in split(RUN_COMPONENTS, ",")'
   - branch:
       exclude: main
     event:
