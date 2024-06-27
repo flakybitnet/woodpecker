@@ -50,6 +50,8 @@ steps:
     commands:
       - .ci/build-ui.sh
   build:
+    when:
+      evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")'
     image: *golang_image
     commands:
       - .ci/build.sh
