@@ -110,4 +110,10 @@ var Flags = []cli.Flag{
 		Usage:   "backend k8s pull secret names for private registries",
 		Value:   cli.NewStringSlice("regcred"),
 	},
+	&cli.StringFlag{
+		EnvVars: []string{"WOODPECKER_BACKEND_K8S_MAINTENANCE_CLEANUP_RESOURCES_OLDER_THAN"},
+		Name:    "backend-k8s-maintenance-cleanup-resources-older-than",
+		Usage:   "K8s resources (pod, pvc, service) created more than OLDER_THAN ago is subject to deletion",
+		Value:   "",
+	},
 }

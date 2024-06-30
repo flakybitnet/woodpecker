@@ -104,7 +104,7 @@ You can generate the key using `openssl rand -base64 32`.
 
 #### Stale agents
 
-In order to clean stale Agents, set `WOODPECKER_MAINTENANCE_CLEANUP_AGENTS_OLDER_THAN` with retention duration.
+In order to clean stale Agents, in the Server config set `WOODPECKER_MAINTENANCE_CLEANUP_AGENTS_OLDER_THAN` with retention duration.
 
 For example
 ```
@@ -116,7 +116,7 @@ Upstream issue: [Agents cleaning](https://github.com/woodpecker-ci/woodpecker/is
 
 #### Pipeline logs
 
-In order to clean old pipeline logs, set `WOODPECKER_MAINTENANCE_CLEANUP_PIPELINE_LOGS_OLDER_THAN` with retention duration.
+In order to clean old pipeline logs, in the Server config set `WOODPECKER_MAINTENANCE_CLEANUP_PIPELINE_LOGS_OLDER_THAN` with retention duration.
 
 For example
 ```
@@ -125,6 +125,19 @@ WOODPECKER_MAINTENANCE_CLEANUP_PIPELINE_LOGS_OLDER_THAN=720h
 will delete logs of pipelines created more than 30 days ago.
 
 Upstream issue: [Delete old pipeline logs after X days or Y new runs](https://github.com/woodpecker-ci/woodpecker/issues/1068).
+
+#### Stale K8s resources
+
+If the Agent crashed while pipeline run, there will be abandoned Pod, PVC and maybe Service.
+In order to clean stale resources, in the Agent config set `WOODPECKER_BACKEND_K8S_MAINTENANCE_CLEANUP_RESOURCES_OLDER_THAN` with retention duration.
+
+For example
+```
+WOODPECKER_BACKEND_K8S_MAINTENANCE_CLEANUP_RESOURCES_OLDER_THAN=12h
+```
+will delete Kubernetes resources in the Agent's namespace created more than 12 days ago.
+
+The task runs once at the Agent startup.
 
 ## License
 
