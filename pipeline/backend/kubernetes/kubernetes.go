@@ -17,41 +17,41 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-	"io"
-	"maps"
-	"os"
-	"runtime"
-	"slices"
-	"time"
-
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v3"
+	"go.woodpecker-ci.org/woodpecker/v2/pipeline/backend/types"
 	"gopkg.in/yaml.v3"
+	"io"
 	v1 "k8s.io/api/core/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // To authenticate to GCP K8s clusters
 	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/cache"
-
-	"go.woodpecker-ci.org/woodpecker/v2/pipeline/backend/types"
+	"maps"
+	"os"
+	"runtime"
+	"slices"
 )
 
 const (
 	EngineName = "kubernetes"
-	// TODO: 5 seconds is against best practice, k3s didn't work otherwise
-	defaultResyncDuration = 5 * time.Second
+)
+
+const (
+	OomKilledExitCode               = 137
+	ContainerReasonImagePullBackOff = "ImagePullBackOff"
+	ContainerReasonInvalidImageName = "InvalidImageName"
 )
 
 var defaultDeleteOptions = newDefaultDeleteOptions()
 
 type kube struct {
-	client  kubernetes.Interface
-	config  *config
-	goos    string
-	pssProc *pssProcessor
+	client          kubernetes.Interface
+	config          *config
+	goos            string
+	pssProc         *pssProcessor
+	podEventManager *podEventManager
 }
 
 type config struct {
@@ -189,11 +189,26 @@ func (e *kube) Load(ctx context.Context) (*types.BackendInfo, error) {
 
 	e.pssProc = newPssProcessor(e.getConfig())
 
+	e.podEventManager = newPodEventManager(e.client, e.getConfig())
+	err = e.podEventManager.start()
+	if err != nil {
+		return nil, err
+	}
+
+	go e.unload(ctx)
+
 	// TODO(2693): use info resp of kubeClient to define platform var
 	e.goos = runtime.GOOS
 	return &types.BackendInfo{
 		Platform: runtime.GOOS + "/" + runtime.GOARCH,
 	}, nil
+}
+
+func (e *kube) unload(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+		e.podEventManager.stop()
+	}
 }
 
 func (e *kube) getConfig() *config {
@@ -250,85 +265,141 @@ func (e *kube) StartStep(ctx context.Context, step *types.Step, taskUUID string)
 	}
 
 	log.Trace().Str("taskUUID", taskUUID).Msgf("starting step: %s", step.Name)
-	_, err = startPod(ctx, e, step, options)
-	return err
+	pod, err := startPod(ctx, e, step, options)
+	if err != nil {
+		return err
+	}
+
+	pod, err = e.waitStart(ctx, pod.Name)
+	if err != nil {
+		return err
+	}
+
+	switch {
+	case isPodPending(pod): // pending unrecoverable
+		return newPodPendingError(pod)
+	case isPodFailed(pod): // failed
+		// if it is failed now, then it was run before =>
+		// we should gather the logs and handle it in WaitStep
+		return nil
+	default: // running or succeed
+		return nil
+	}
+}
+
+func (e *kube) waitStart(ctx context.Context, podName string) (*v1.Pod, error) {
+	podStartedOrUnrecoverableChan := make(chan *v1.Pod)
+	defer close(podStartedOrUnrecoverableChan)
+
+	var lastSeenPod *v1.Pod
+	registration, err := e.podEventManager.addPodChangeFunc(podName, func(pod *v1.Pod) {
+		lastSeenPod = pod
+		if !isPodPending(pod) {
+			podStartedOrUnrecoverableChan <- pod
+		} else {
+			logPendingPod(pod)
+			if isPodPendingUnrecoverable(pod) {
+				podStartedOrUnrecoverableChan <- pod
+			}
+		}
+	})
+	if err != nil {
+		return nil, err
+	}
+	defer e.podEventManager.removePodChangeHandler(registration)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return lastSeenPod, ctx.Err()
+		case startedOrUnrecoverablePod := <-podStartedOrUnrecoverableChan:
+			return startedOrUnrecoverablePod, nil
+		}
+	}
+}
+
+func logPendingPod(pod *v1.Pod) {
+	ps := pod.Status
+	l := log.Trace().Str("pod", pod.Name).Str("podStatus", string(ps.Phase)).Str("podReason", ps.Reason).Str("podMessage", ps.Message)
+	cs := getFirstContainerState(pod)
+	if cs != nil && cs.Waiting != nil {
+		l.Str("containerReason", cs.Waiting.Reason).Str("containerMessage", cs.Waiting.Message)
+	}
+	l.Msg("pod is pending")
+}
+
+func isPodPendingUnrecoverable(pod *v1.Pod) bool {
+	if !isPodPending(pod) {
+		return false
+	}
+	cs := getFirstContainerState(pod)
+	if cs == nil || cs.Waiting == nil {
+		return false
+	}
+	return cs.Waiting.Reason == ContainerReasonImagePullBackOff || cs.Waiting.Reason == ContainerReasonInvalidImageName
 }
 
 // WaitStep waits for the pipeline step to complete and returns
 // the completion results.
 func (e *kube) WaitStep(ctx context.Context, step *types.Step, taskUUID string) (*types.State, error) {
+	log.Trace().Str("taskUUID", taskUUID).Str("step", step.UUID).Msg("waiting for step")
 	podName, err := stepToPodName(step)
 	if err != nil {
 		return nil, err
 	}
 
-	log.Trace().Str("taskUUID", taskUUID).Msgf("waiting for pod: %s", podName)
-
-	finished := make(chan bool)
-
-	podUpdated := func(_, new any) {
-		pod, ok := new.(*v1.Pod)
-		if !ok {
-			log.Error().Msgf("could not parse pod: %v", new)
-			return
-		}
-
-		if pod.Name == podName {
-			if isImagePullBackOffState(pod) {
-				finished <- true
-			}
-
-			switch pod.Status.Phase {
-			case v1.PodSucceeded, v1.PodFailed, v1.PodUnknown:
-				finished <- true
-			}
-		}
-	}
-
-	si := informers.NewSharedInformerFactoryWithOptions(e.client, defaultResyncDuration, informers.WithNamespace(e.config.Namespace))
-	if _, err := si.Core().V1().Pods().Informer().AddEventHandler(
-		cache.ResourceEventHandlerFuncs{
-			UpdateFunc: podUpdated,
-		},
-	); err != nil {
-		return nil, err
-	}
-
-	stop := make(chan struct{})
-	si.Start(stop)
-	defer close(stop)
-
-	// TODO: Cancel on ctx.Done
-	<-finished
-
-	pod, err := e.client.CoreV1().Pods(e.config.Namespace).Get(ctx, podName, meta_v1.GetOptions{})
+	pod, err := e.waitStop(ctx, podName)
 	if err != nil {
 		return nil, err
 	}
 
-	if isImagePullBackOffState(pod) {
-		return nil, fmt.Errorf("could not pull image for pod %s", podName)
+	state := types.State{
+		Exited: true,
+	}
+	cs := getFirstContainerState(pod)
+
+	switch {
+	case isPodSucceed(pod):
+		state.ExitCode = 0
+	case isPodFailed(pod):
+		state.ExitCode = 1
+		// if we set error here, then we can't see step logs, there will be something like:
+		// Oh no, we got some errors!
+		// pod wp-01j1nebq3a06xhmp144bze92xk failed because of , : container containerd://e579b7b385acd1ae1b2ba24144928eb92607cae804cc5ca360a3832a2eeb3186 is terminated because of Error,
+		//state.Error = newPodFailedError(pod)
+		if cs != nil && cs.Terminated != nil {
+			state.ExitCode = int(cs.Terminated.ExitCode)
+			state.OOMKilled = cs.Terminated.ExitCode == OomKilledExitCode
+		}
 	}
 
-	if len(pod.Status.ContainerStatuses) == 0 {
-		return nil, fmt.Errorf("no container statuses found for pod %s", podName)
-	}
+	return &state, nil
+}
 
-	cs := pod.Status.ContainerStatuses[0]
+func (e *kube) waitStop(ctx context.Context, podName string) (*v1.Pod, error) {
+	podStoppedChan := make(chan *v1.Pod)
+	defer close(podStoppedChan)
 
-	if cs.State.Terminated == nil {
-		err := fmt.Errorf("no terminated state found for container %s/%s", podName, cs.Name)
-		log.Error().Str("taskUUID", taskUUID).Str("pod", podName).Str("container", cs.Name).Interface("state", cs.State).Msg(err.Error())
+	var lastSeenPod *v1.Pod
+	registration, err := e.podEventManager.addPodChangeFunc(podName, func(pod *v1.Pod) {
+		lastSeenPod = pod
+		if isPodSucceed(pod) || isPodFailed(pod) {
+			podStoppedChan <- pod
+		}
+	})
+	if err != nil {
 		return nil, err
 	}
+	defer e.podEventManager.removePodChangeHandler(registration)
 
-	bs := &types.State{
-		ExitCode:  int(cs.State.Terminated.ExitCode),
-		Exited:    true,
-		OOMKilled: false,
+	for {
+		select {
+		case <-ctx.Done():
+			return lastSeenPod, ctx.Err()
+		case stoppedPod := <-podStoppedChan:
+			return stoppedPod, nil
+		}
 	}
-
-	return bs, nil
 }
 
 // TailStep tails the pipeline step logs.
@@ -337,72 +408,43 @@ func (e *kube) TailStep(ctx context.Context, step *types.Step, taskUUID string) 
 	if err != nil {
 		return nil, err
 	}
-
 	log.Trace().Str("taskUUID", taskUUID).Msgf("tail logs of pod: %s", podName)
 
-	up := make(chan bool)
-
-	podUpdated := func(_, new any) {
-		pod, ok := new.(*v1.Pod)
-		if !ok {
-			log.Error().Msgf("could not parse pod: %v", new)
-			return
-		}
-
-		if pod.Name == podName {
-			if isImagePullBackOffState(pod) {
-				up <- true
-			}
-			switch pod.Status.Phase {
-			case v1.PodRunning, v1.PodSucceeded, v1.PodFailed:
-				up <- true
-			}
-		}
-	}
-
-	si := informers.NewSharedInformerFactoryWithOptions(e.client, defaultResyncDuration, informers.WithNamespace(e.config.Namespace))
-	if _, err := si.Core().V1().Pods().Informer().AddEventHandler(
-		cache.ResourceEventHandlerFuncs{
-			UpdateFunc: podUpdated,
-		},
-	); err != nil {
+	logsStream, err := e.streamLogs(ctx, step)
+	if err != nil {
 		return nil, err
 	}
 
-	stop := make(chan struct{})
-	si.Start(stop)
-	defer close(stop)
+	pipeReader, pipeWriter := io.Pipe()
+	go func() {
+		defer logsStream.Close()
+		defer pipeWriter.Close()
+		defer pipeReader.Close()
 
-	<-up
+		_, err = io.Copy(pipeWriter, logsStream)
+		if err != nil {
+			return
+		}
+	}()
+	return pipeReader, nil
+}
 
+func (e *kube) streamLogs(ctx context.Context, step *types.Step) (io.ReadCloser, error) {
+	podName, err := stepToPodName(step)
+	if err != nil {
+		return nil, err
+	}
 	opts := &v1.PodLogOptions{
 		Follow:    true,
 		Container: podName,
 	}
-
-	logs, err := e.client.CoreV1().RESTClient().Get().
+	return e.client.CoreV1().RESTClient().Get().
 		Namespace(e.config.Namespace).
 		Name(podName).
 		Resource("pods").
 		SubResource("log").
 		VersionedParams(opts, scheme.ParameterCodec).
 		Stream(ctx)
-	if err != nil {
-		return nil, err
-	}
-	rc, wc := io.Pipe()
-
-	go func() {
-		defer logs.Close()
-		defer wc.Close()
-		defer rc.Close()
-
-		_, err = io.Copy(wc, logs)
-		if err != nil {
-			return
-		}
-	}()
-	return rc, nil
 }
 
 func (e *kube) DestroyStep(ctx context.Context, step *types.Step, taskUUID string) error {
@@ -440,4 +482,57 @@ func (e *kube) DestroyWorkflow(ctx context.Context, conf *types.Config, taskUUID
 	}
 
 	return nil
+}
+
+func isPodPending(pod *v1.Pod) bool {
+	cs := getFirstContainerState(pod)
+	return pod.Status.Phase == v1.PodPending || (cs != nil && cs.Waiting != nil && len(cs.Waiting.Reason) > 0)
+}
+
+func isPodSucceed(pod *v1.Pod) bool {
+	cs := getFirstContainerState(pod)
+	return pod.Status.Phase == v1.PodSucceeded || (cs != nil && cs.Terminated != nil && cs.Terminated.ExitCode == 0)
+}
+
+func isPodFailed(pod *v1.Pod) bool {
+	cs := getFirstContainerState(pod)
+	return pod.Status.Phase == v1.PodFailed || (cs != nil && cs.Terminated != nil && cs.Terminated.ExitCode != 0)
+}
+
+func newPodFailedError(pod *v1.Pod) error {
+	cs := getFirstContainerState(pod)
+	if cs != nil && cs.Terminated != nil {
+		return fmt.Errorf("pod %s failed because of %s, %s: %w", pod.Name, pod.Status.Reason, pod.Status.Message, newContainerTerminatedError(cs.Terminated))
+	} else {
+		return fmt.Errorf("pod %s failed because of %s, %s", pod.Name, pod.Status.Reason, pod.Status.Message)
+	}
+}
+
+func newContainerTerminatedError(terminated *v1.ContainerStateTerminated) error {
+	return fmt.Errorf("container %s is terminated because of %s, %s", terminated.ContainerID, terminated.Reason, terminated.Message)
+}
+
+func newPodPendingError(pod *v1.Pod) error {
+	cs := getFirstContainerState(pod)
+	if cs != nil && cs.Waiting != nil {
+		return fmt.Errorf("pod %s pending because of %s, %s: %w", pod.Name, pod.Status.Reason, pod.Status.Message, newContainerWaitingError(cs.Waiting))
+	} else {
+		return fmt.Errorf("pod %s pending because of %s, %s", pod.Name, pod.Status.Reason, pod.Status.Message)
+	}
+}
+
+func newContainerWaitingError(waiting *v1.ContainerStateWaiting) error {
+	return fmt.Errorf("container is waiting because of %s, %s", waiting.Reason, waiting.Message)
+}
+
+func getFirstContainerState(pod *v1.Pod) *v1.ContainerState {
+	if pod == nil {
+		return nil
+	}
+	ps := pod.Status
+	if len(ps.ContainerStatuses) == 0 {
+		return nil
+	}
+	cs := ps.ContainerStatuses[0]
+	return &cs.State
 }
