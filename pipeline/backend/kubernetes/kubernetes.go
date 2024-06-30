@@ -277,7 +277,9 @@ func (e *kube) StartStep(ctx context.Context, step *types.Step, taskUUID string)
 	case isPodPending(pod): // pending unrecoverable
 		return newPodPendingError(pod)
 	case isPodFailed(pod): // failed
-		return newPodFailedError(pod)
+		// if it is failed now, then it was run before =>
+		// we should gather the logs and handle it in WaitStep
+		return nil
 	default: // running or succeed
 		return nil
 	}
@@ -359,7 +361,10 @@ func (e *kube) WaitStep(ctx context.Context, step *types.Step, taskUUID string) 
 		state.ExitCode = 0
 	case isPodFailed(pod):
 		state.ExitCode = 1
-		state.Error = newPodFailedError(pod)
+		// if we set error here, then we can't see step logs, there will be something like:
+		// Oh no, we got some errors!
+		// pod wp-01j1nebq3a06xhmp144bze92xk failed because of , : container containerd://e579b7b385acd1ae1b2ba24144928eb92607cae804cc5ca360a3832a2eeb3186 is terminated because of Error,
+		//state.Error = newPodFailedError(pod)
 		if cs != nil && cs.Terminated != nil {
 			state.ExitCode = int(cs.Terminated.ExitCode)
 			state.OOMKilled = cs.Terminated.ExitCode == OomKilledExitCode
