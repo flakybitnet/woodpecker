@@ -20,7 +20,6 @@ import (
 	"regexp"
 	"strings"
 
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	client_cmd "k8s.io/client-go/tools/clientcmd"
@@ -51,18 +50,6 @@ func toDNSName(in string) (string, error) {
 	withoutSpaces := strings.ReplaceAll(withoutUnderscores, " ", "-")
 	almostDNS := dnsDisallowedCharacters.ReplaceAllString(withoutSpaces, "")
 	return dnsName(almostDNS)
-}
-
-func isImagePullBackOffState(pod *v1.Pod) bool {
-	for _, containerState := range pod.Status.ContainerStatuses {
-		if containerState.State.Waiting != nil {
-			if containerState.State.Waiting.Reason == "ImagePullBackOff" {
-				return true
-			}
-		}
-	}
-
-	return false
 }
 
 // getClientOutOfCluster returns a k8s client set to the request from outside of cluster.
