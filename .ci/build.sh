@@ -7,6 +7,7 @@ set +a
 
 echo "Building $APP_NAME-$APP_COMPONENT"
 
+export GOPROXY="$GO_PROXY,https://proxy.golang.org,direct"
 export GOPATH='/woodpecker/go'
 export CGO_ENABLED=0
 
