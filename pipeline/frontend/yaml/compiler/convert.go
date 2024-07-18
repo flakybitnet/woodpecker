@@ -31,6 +31,13 @@ import (
 	"go.woodpecker-ci.org/woodpecker/v2/pipeline/frontend/yaml/utils"
 )
 
+const (
+	// The pluginWorkspaceBase should not be changed, only if you are sure what you do.
+	pluginWorkspaceBase = "/woodpecker"
+	// DefaultWorkspaceBase is set if not altered by the user.
+	DefaultWorkspaceBase = pluginWorkspaceBase
+)
+
 func (c *Compiler) createProcess(container *yaml_types.Container, stepType backend_types.StepType) (*backend_types.Step, error) {
 	var (
 		uuid = ulid.Make()
@@ -38,11 +45,17 @@ func (c *Compiler) createProcess(container *yaml_types.Container, stepType backe
 		detached   bool
 		workingDir string
 
-		workspace   = fmt.Sprintf("%s_default:%s", c.prefix, c.base)
 		privileged  = container.Privileged
 		networkMode = container.NetworkMode
 		// network    = container.Network
 	)
+
+	workspaceBase := c.workspaceBase
+	if container.IsPlugin() {
+		// plugins have a predefined workspace base to not tamper with entrypoint executables
+		workspaceBase = pluginWorkspaceBase
+	}
+	workspaceVolume := fmt.Sprintf("%s_default:%s", c.prefix, workspaceBase)
 
 	networks := []backend_types.Conn{
 		{
@@ -68,7 +81,7 @@ func (c *Compiler) createProcess(container *yaml_types.Container, stepType backe
 
 	var volumes []string
 	if !c.local {
-		volumes = append(volumes, workspace)
+		volumes = append(volumes, workspaceVolume)
 	}
 	volumes = append(volumes, c.volumes...)
 	for _, volume := range container.Volumes.Volumes {
@@ -79,7 +92,7 @@ func (c *Compiler) createProcess(container *yaml_types.Container, stepType backe
 	environment := map[string]string{}
 	maps.Copy(environment, c.env)
 
-	environment["CI_WORKSPACE"] = path.Join(c.base, c.path)
+	environment["CI_WORKSPACE"] = path.Join(workspaceBase, c.workspacePath)
 
 	if stepType == backend_types.StepTypeService || container.Detached {
 		detached = true
@@ -220,12 +233,14 @@ func (c *Compiler) createProcess(container *yaml_types.Container, stepType backe
 }
 
 func (c *Compiler) stepWorkingDir(container *yaml_types.Container, stepType backend_types.StepType) string {
-	workDir := path.Join(c.base, c.path, container.Directory)
-	if stepType == backend_types.StepTypeClone {
-		workDir = c.base
-	}
+	workDir := path.Join(c.workspaceBase, c.workspacePath, container.Directory)
 	if path.IsAbs(container.Directory) {
 		workDir = container.Directory
+	} else if container.IsPlugin() {
+		workDir = path.Join(pluginWorkspaceBase, c.workspacePath, container.Directory)
+	}
+	if stepType == backend_types.StepTypeClone {
+		workDir = c.workspaceBase
 	}
 	log.Trace().Msgf("using working directory: %s", workDir)
 	return workDir

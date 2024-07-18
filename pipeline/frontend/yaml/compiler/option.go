@@ -99,8 +99,8 @@ func WithNetrc(username, password, machine string) Option {
 func WithWorkspace(base, path string) Option {
 	log.Trace().Msgf("with workspace base %s, path %s", base, path)
 	return func(compiler *Compiler) {
-		compiler.base = base
-		compiler.path = path
+		compiler.workspaceBase = base
+		compiler.workspacePath = path
 	}
 }
 
