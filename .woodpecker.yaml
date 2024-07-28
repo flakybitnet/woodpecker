@@ -6,10 +6,10 @@
 variables:
   - &debian_image 'public.ecr.aws/docker/library/debian:bookworm-slim'
   - &golang_image 'public.ecr.aws/docker/library/golang:1.22.5-bookworm'
-  - &node_image 'public.ecr.aws/docker/library/node:22.5.0-bookworm-slim'
+  - &node_image 'public.ecr.aws/docker/library/node:22.5.1-bookworm-slim'
   - &kaniko_image "gcr.io/kaniko-project/executor:v1.23.2-debug"
   - &skopeo_image "quay.io/containers/skopeo:v1.15.2"
-  - &awscli_image "public.ecr.aws/aws-cli/aws-cli:2.17.14"
+  - &awscli_image "public.ecr.aws/aws-cli/aws-cli:2.17.18"
 
 matrix:
   APP_COMPONENT:
