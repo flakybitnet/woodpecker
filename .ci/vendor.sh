@@ -11,6 +11,6 @@ export GOPROXY="$GO_PROXY,https://proxy.golang.org,direct"
 export GOPATH='/woodpecker/go'
 export CGO_ENABLED=0
 
-go mod vendor
+retry 2 go mod vendor
 
 echo Done
