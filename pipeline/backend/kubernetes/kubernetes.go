@@ -32,6 +32,7 @@ import (
 	"os"
 	"runtime"
 	"slices"
+	"time"
 )
 
 const (
@@ -55,20 +56,21 @@ type kube struct {
 }
 
 type config struct {
-	Namespace                   string
-	StorageClass                string
-	VolumeSize                  string
-	StorageRwx                  bool
-	PodLabels                   map[string]string
-	PodLabelsAllowFromStep      bool
-	PodAnnotations              map[string]string
-	PodAnnotationsAllowFromStep bool
-	PodNodeSelector             map[string]string
-	ImagePullSecretNames        []string
-	PodUserHome                 string
-	SecurityContext             SecurityContextConfig
-	NativeSecretsAllowFromStep  bool
-	PssProfile                  PssProfile
+	Namespace                      string
+	StorageClass                   string
+	VolumeSize                     string
+	StorageRwx                     bool
+	PodLabels                      map[string]string
+	PodLabelsAllowFromStep         bool
+	PodAnnotations                 map[string]string
+	PodAnnotationsAllowFromStep    bool
+	PodNodeSelector                map[string]string
+	ImagePullSecretNames           []string
+	PodUserHome                    string
+	SecurityContext                SecurityContextConfig
+	NativeSecretsAllowFromStep     bool
+	PssProfile                     PssProfile
+	CleanupStaleResourcesRetention time.Duration
 }
 type SecurityContextConfig struct {
 	RunAsNonRoot bool
@@ -116,7 +118,8 @@ func configFromCliContext(ctx context.Context) (*config, error) {
 					Group:        c.Int("backend-k8s-secctx-group"),
 					FsGroup:      c.Int("backend-k8s-secctx-fsgroup"),
 				},
-				NativeSecretsAllowFromStep: c.Bool("backend-k8s-allow-native-secrets"),
+				NativeSecretsAllowFromStep:     c.Bool("backend-k8s-allow-native-secrets"),
+				CleanupStaleResourcesRetention: c.Duration("backend-k8s-maintenance-cleanup-resources-older-than"),
 			}
 			// TODO: remove in next major
 			if len(config.ImagePullSecretNames) == 1 && config.ImagePullSecretNames[0] == "regcred" {
@@ -195,6 +198,7 @@ func (e *kube) Load(ctx context.Context) (*types.BackendInfo, error) {
 		return nil, err
 	}
 
+	go e.cleanStaleResources()
 	go e.unload(ctx)
 
 	// TODO(2693): use info resp of kubeClient to define platform var

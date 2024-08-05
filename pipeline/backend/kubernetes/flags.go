@@ -116,4 +116,10 @@ var Flags = []cli.Flag{
 		Usage:   "whether to allow existing Kubernetes secrets to be referenced from steps",
 		Value:   false,
 	},
+	&cli.StringFlag{
+		Sources: cli.EnvVars("WOODPECKER_BACKEND_K8S_MAINTENANCE_CLEANUP_RESOURCES_OLDER_THAN"),
+		Name:    "backend-k8s-maintenance-cleanup-resources-older-than",
+		Usage:   "K8s resources (pod, pvc, service) created more than OLDER_THAN ago is subject to deletion",
+		Value:   "",
+	},
 }
