@@ -13,11 +13,14 @@ if printf '%s' "$DEST_REGISTRY" | grep -q "ecr.aws"; then
   DEST_CREDS=$(cat "$AWS_CREDS_FILE")
 fi
 
+src_image="$src_image-debug"
+dst_image="$dst_image-debug"
+
 echo "Pushing $dst_image"
 retry 2 skopeo copy --dest-creds="$DEST_CREDS" "docker://$src_image" "docker://$dst_image"
 
-src_image="$src_image-debug"
-dst_image="$dst_image-debug"
+src_image="${src_image%-debug}"
+dst_image="${dst_image%-debug}"
 
 echo "Pushing $dst_image"
 retry 2 skopeo copy --dest-creds="$DEST_CREDS" "docker://$src_image" "docker://$dst_image"
