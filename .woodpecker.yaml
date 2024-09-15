@@ -5,7 +5,7 @@
 
 variables:
   - &debian_image 'public.ecr.aws/docker/library/debian:bookworm-slim'
-  - &golang_image 'public.ecr.aws/docker/library/golang:1.22.6-bookworm'
+  - &golang_image 'public.ecr.aws/docker/library/golang:1.22.7-bookworm'
   - &node_image 'public.ecr.aws/docker/library/node:22.5.1-bookworm-slim'
   - &kaniko_image "gcr.io/kaniko-project/executor:v1.23.2-debug"
   - &skopeo_image "quay.io/containers/skopeo:v1.15.2"

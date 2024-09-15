@@ -2,7 +2,7 @@ module go.woodpecker-ci.org/woodpecker/v2
 
 go 1.22.0
 
-toolchain go1.22.6
+toolchain go1.22.7
 
 require (
 	code.gitea.io/sdk/gitea v0.19.0
@@ -41,7 +41,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/kinbiko/jsonassert v1.1.1
 	github.com/lib/pq v1.10.9
-	github.com/mattn/go-sqlite3 v1.14.22
+	github.com/mattn/go-sqlite3 v1.14.23
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/moby/moby v24.0.10-0.20240723193628-852759a7df45+incompatible
 	github.com/moby/term v0.5.0
@@ -62,18 +62,18 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0
 	github.com/zalando/go-keyring v0.2.5
 	go.uber.org/multierr v1.11.0
-	golang.org/x/crypto v0.26.0
-	golang.org/x/net v0.28.0
+	golang.org/x/crypto v0.27.0
+	golang.org/x/net v0.29.0
 	golang.org/x/oauth2 v0.21.0
 	golang.org/x/sync v0.8.0
-	golang.org/x/term v0.23.0
-	golang.org/x/text v0.17.0
+	golang.org/x/term v0.24.0
+	golang.org/x/text v0.18.0
 	google.golang.org/grpc v1.65.0
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v3 v3.0.1
-	k8s.io/api v0.30.4
-	k8s.io/apimachinery v0.30.4
-	k8s.io/client-go v0.30.4
+	k8s.io/api v0.30.5
+	k8s.io/apimachinery v0.30.5
+	k8s.io/client-go v0.30.5
 	src.techknowlogick.com/xormigrate v1.7.1
 	xorm.io/builder v0.3.13
 	xorm.io/xorm v1.3.9
@@ -92,14 +92,12 @@ require (
 	github.com/caddyserver/zerossl v0.1.3 // indirect
 	github.com/catppuccin/go v0.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
-	github.com/charmbracelet/bubbles v0.19.0 // indirect
-	github.com/charmbracelet/bubbletea v0.27.1 // indirect
+	github.com/charmbracelet/bubbles v0.20.0 // indirect
+	github.com/charmbracelet/bubbletea v1.1.1 // indirect
 	github.com/charmbracelet/lipgloss v0.13.0 // indirect
-	github.com/charmbracelet/x/ansi v0.1.4 // indirect
-	github.com/charmbracelet/x/exp/strings v0.0.0-20240829200707-9a7bd603a0d7 // indirect
-	github.com/charmbracelet/x/input v0.1.3 // indirect
-	github.com/charmbracelet/x/term v0.1.1 // indirect
-	github.com/charmbracelet/x/windows v0.1.2 // indirect
+	github.com/charmbracelet/x/ansi v0.2.3 // indirect
+	github.com/charmbracelet/x/exp/strings v0.0.0-20240914193755-48d9a4a13687 // indirect
+	github.com/charmbracelet/x/term v0.2.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
 	github.com/cloudwego/iasm v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
@@ -182,15 +180,14 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
-	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/zeebo/blake3 v0.2.4 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/exp v0.0.0-20240823005443-9b4947da3948 // indirect
-	golang.org/x/mod v0.20.0 // indirect
-	golang.org/x/sys v0.24.0 // indirect
+	golang.org/x/exp v0.0.0-20240909161429-701f63a606c0 // indirect
+	golang.org/x/mod v0.21.0 // indirect
+	golang.org/x/sys v0.25.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/tools v0.24.0 // indirect
+	golang.org/x/tools v0.25.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240903143218-8af14fe29dc1 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
