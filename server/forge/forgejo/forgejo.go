@@ -460,6 +460,7 @@ func (c *Forgejo) BranchHead(ctx context.Context, u *model.User, r *model.Repo, 
 	return &model.Commit{
 		SHA:      b.Commit.ID,
 		ForgeURL: b.Commit.URL,
+		Message:  b.Commit.Message,
 	}, nil
 }
 

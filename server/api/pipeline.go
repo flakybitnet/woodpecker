@@ -81,6 +81,11 @@ func CreatePipeline(c *gin.Context) {
 }
 
 func createTmpPipeline(event model.WebhookEvent, commit *model.Commit, user *model.User, opts *model.PipelineOptions) *model.Pipeline {
+	message := "Manual"
+	if len(commit.Message) > 0 {
+		message = fmt.Sprintf("%s: %.48s", message, commit.Message)
+	}
+
 	return &model.Pipeline{
 		Event:     event,
 		Commit:    commit.SHA,
@@ -88,7 +93,7 @@ func createTmpPipeline(event model.WebhookEvent, commit *model.Commit, user *mod
 		Timestamp: time.Now().UTC().Unix(),
 
 		Avatar:  user.Avatar,
-		Message: "Manual",
+		Message: message,
 
 		Ref:                 opts.Branch,
 		AdditionalVariables: opts.Variables,

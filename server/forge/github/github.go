@@ -567,6 +567,7 @@ func (c *client) BranchHead(ctx context.Context, u *model.User, r *model.Repo, b
 	return &model.Commit{
 		SHA:      b.GetCommit().GetSHA(),
 		ForgeURL: b.GetCommit().GetHTMLURL(),
+		Message:  b.GetCommit().GetCommit().GetMessage(),
 	}, nil
 }
 
