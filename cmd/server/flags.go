@@ -162,7 +162,6 @@ var flags = append([]cli.Flag{
 		Sources: cli.EnvVars("WOODPECKER_ESCALATE", "WOODPECKER_PLUGINS_PRIVILEGED"),
 		Name:    "escalate",
 		Usage:   "images to run in privileged mode",
-		Value:   constant.PrivilegedPlugins,
 	},
 	&cli.StringSliceFlag{
 		Sources: cli.EnvVars("WOODPECKER_VOLUME"),

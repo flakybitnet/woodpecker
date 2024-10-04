@@ -18,8 +18,6 @@ import (
 	"time"
 
 	"github.com/urfave/cli/v3"
-
-	"go.woodpecker-ci.org/woodpecker/v2/shared/constant"
 )
 
 var flags = []cli.Flag{
@@ -60,7 +58,6 @@ var flags = []cli.Flag{
 	&cli.StringSliceFlag{
 		Name:  "privileged",
 		Usage: "privileged plugins",
-		Value: constant.PrivilegedPlugins,
 	},
 	&cli.StringFlag{
 		Sources: cli.EnvVars("WOODPECKER_BACKEND"),
