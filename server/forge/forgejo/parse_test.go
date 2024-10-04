@@ -174,7 +174,7 @@ func TestForgejoParser(t *testing.T) {
 				Event:    "tag",
 				Commit:   "ef98532add3b2feb7a137426bba1248724367df5",
 				Ref:      "refs/tags/v1.0.0",
-				Message:  "created tag v1.0.0",
+				Message:  "Tag: v1.0.0",
 				Sender:   "gordon",
 				Avatar:   "https://secure.gravatar.com/avatar/8c58a0be77ee441bb8f8595b7f1b4e87",
 				Email:    "gordon@golang.org",

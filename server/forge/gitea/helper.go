@@ -128,13 +128,14 @@ func pipelineFromTag(hook *pushHook) *model.Pipeline {
 		fixMalformedAvatar(hook.Sender.AvatarURL),
 	)
 	ref := strings.TrimPrefix(hook.Ref, "refs/tags/")
+	message := fmt.Sprintf("%s: %.48s", "Tag", ref)
 
 	return &model.Pipeline{
 		Event:     model.EventTag,
 		Commit:    hook.Sha,
 		Ref:       fmt.Sprintf("refs/tags/%s", ref),
 		ForgeURL:  fmt.Sprintf("%s/src/tag/%s", hook.Repo.HTMLURL, ref),
-		Message:   fmt.Sprintf("created tag %s", ref),
+		Message:   message,
 		Avatar:    avatar,
 		Author:    hook.Sender.UserName,
 		Sender:    hook.Sender.UserName,

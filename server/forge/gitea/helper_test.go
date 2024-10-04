@@ -126,7 +126,7 @@ func Test_parse(t *testing.T) {
 			g.Assert(pipeline.Ref).Equal("refs/tags/v1.0.0")
 			g.Assert(pipeline.Branch).Equal("")
 			g.Assert(pipeline.ForgeURL).Equal("http://gitea.golang.org/gordon/hello-world/src/tag/v1.0.0")
-			g.Assert(pipeline.Message).Equal("created tag v1.0.0")
+			g.Assert(pipeline.Message).Equal("Tag: v1.0.0")
 		})
 
 		g.It("Should return a Pipeline struct from a pull_request hook", func() {
