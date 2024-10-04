@@ -199,9 +199,6 @@ func (r *Runtime) execAll(steps []*backend.Step) <-chan error {
 				return err
 			}
 
-			// add compatibility for drone-ci plugins
-			metadata.SetDroneEnviron(step.Environment)
-
 			logger.Debug().
 				Str("step", step.Name).
 				Msg("executing")
