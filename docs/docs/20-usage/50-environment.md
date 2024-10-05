@@ -68,11 +68,11 @@ This is the reference list of all environment variables available to your pipeli
 | `CI_COMMIT_REF`                  | commit ref                                                                                                         |
 | `CI_COMMIT_REFSPEC`              | commit ref spec                                                                                                    |
 | `CI_COMMIT_BRANCH`               | commit branch (equals target branch for pull requests)                                                             |
-| `CI_COMMIT_SOURCE_BRANCH`        | commit source branch (empty if event is not `pull_request` or `pull_request_closed`)                               |
-| `CI_COMMIT_TARGET_BRANCH`        | commit target branch (empty if event is not `pull_request` or `pull_request_closed`)                               |
-| `CI_COMMIT_TAG`                  | commit tag name (empty if event is not `tag`)                                                                      |
-| `CI_COMMIT_PULL_REQUEST`         | commit pull request number (empty if event is not `pull_request` or `pull_request_closed`)                         |
-| `CI_COMMIT_PULL_REQUEST_LABELS`  | labels assigned to pull request (empty if event is not `pull_request` or `pull_request_closed`)                    |
+| `CI_COMMIT_SOURCE_BRANCH`        | commit source branch (sets only for `pull_request` and `pull_request_closed` events)                               | `issue-branch`                                                                             |
+| `CI_COMMIT_TARGET_BRANCH`        | commit target branch (sets only for `pull_request` and `pull_request_closed` events)                               | `main`                                                                                     |
+| `CI_COMMIT_TAG`                  | commit tag name (empty if event is not `tag`)                                                                      | `v1.10.3`                                                                                  |
+| `CI_COMMIT_PULL_REQUEST`         | commit pull request number (sets only for `pull_request` and `pull_request_closed` events)                         | `1`                                                                                        |
+| `CI_COMMIT_PULL_REQUEST_LABELS`  | labels assigned to pull request (sets only for `pull_request` and `pull_request_closed` events)                    | `server`                                                                                   |
 | `CI_COMMIT_MESSAGE`              | commit message                                                                                                     |
 | `CI_COMMIT_AUTHOR`               | commit author username                                                                                             |
 | `CI_COMMIT_AUTHOR_EMAIL`         | commit author email address                                                                                        |
@@ -105,8 +105,8 @@ This is the reference list of all environment variables available to your pipeli
 | `CI_PREV_COMMIT_REF`             | previous commit ref                                                                                                |
 | `CI_PREV_COMMIT_REFSPEC`         | previous commit ref spec                                                                                           |
 | `CI_PREV_COMMIT_BRANCH`          | previous commit branch                                                                                             |
-| `CI_PREV_COMMIT_SOURCE_BRANCH`   | previous commit source branch                                                                                      |
-| `CI_PREV_COMMIT_TARGET_BRANCH`   | previous commit target branch                                                                                      |
+| `CI_PREV_COMMIT_SOURCE_BRANCH`   | previous commit source branch                                                                                      | `issue-branch`                                                                             |
+| `CI_PREV_COMMIT_TARGET_BRANCH`   | previous commit target branch                                                                                      | `main`                                                                                     |
 | `CI_PREV_COMMIT_URL`             | previous commit link in forge                                                                                      |
 | `CI_PREV_COMMIT_MESSAGE`         | previous commit message                                                                                            |
 | `CI_PREV_COMMIT_AUTHOR`          | previous commit author username                                                                                    |
