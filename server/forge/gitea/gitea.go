@@ -22,6 +22,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"path"
 	"path/filepath"
 	"strconv"
@@ -49,35 +50,38 @@ const (
 )
 
 type Gitea struct {
-	url          string
-	internalUrl  string
-	ClientID     string
-	ClientSecret string
-	OAuthHost    string
-	SkipVerify   bool
-	pageSize     int
+	url           string
+	internalUrl   string
+	internalClone bool
+	ClientID      string
+	ClientSecret  string
+	OAuthHost     string
+	SkipVerify    bool
+	pageSize      int
 }
 
 // Opts defines configuration options.
 type Opts struct {
-	URL         string // Gitea server url.
-	InternalURL string // Gitea internal server url.
-	Client      string // OAuth2 Client ID
-	Secret      string // OAuth2 Client Secret
-	OAuthHost   string // OAuth2 Host
-	SkipVerify  bool   // Skip ssl verification.
+	URL           string // Gitea server url.
+	InternalURL   string // Gitea internal server url.
+	InternalClone bool   // Clone from internal URL.
+	Client        string // OAuth2 Client ID
+	Secret        string // OAuth2 Client Secret
+	OAuthHost     string // OAuth2 Host
+	SkipVerify    bool   // Skip ssl verification.
 }
 
 // New returns a Forge implementation that integrates with Gitea,
 // an open source Git service written in Go. See https://gitea.io/
 func New(opts Opts) (forge.Forge, error) {
 	return &Gitea{
-		url:          opts.URL,
-		internalUrl:  opts.InternalURL,
-		ClientID:     opts.Client,
-		ClientSecret: opts.Secret,
-		OAuthHost:    opts.OAuthHost,
-		SkipVerify:   opts.SkipVerify,
+		url:           opts.URL,
+		internalUrl:   opts.InternalURL,
+		internalClone: opts.InternalClone,
+		ClientID:      opts.Client,
+		ClientSecret:  opts.Secret,
+		OAuthHost:     opts.OAuthHost,
+		SkipVerify:    opts.SkipVerify,
 	}, nil
 }
 
@@ -225,23 +229,27 @@ func (g *Gitea) Repo(ctx context.Context, u *model.User, remoteID model.ForgeRem
 		return nil, err
 	}
 
+	var giteaRepo *gitea.Repository
 	if remoteID.IsValid() {
 		intID, err := strconv.ParseInt(string(remoteID), 10, 64)
 		if err != nil {
 			return nil, err
 		}
-		repo, _, err := client.GetRepoByID(intID)
+		giteaRepo, _, err = client.GetRepoByID(intID)
 		if err != nil {
 			return nil, err
 		}
-		return toRepo(repo), nil
+	} else {
+		giteaRepo, _, err = client.GetRepo(owner, name)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	repo, _, err := client.GetRepo(owner, name)
-	if err != nil {
-		return nil, err
-	}
-	return toRepo(repo), nil
+	wpRepo := toRepo(giteaRepo)
+	g.applyInternalCloneUrl(wpRepo)
+
+	return wpRepo, nil
 }
 
 // Repos returns a list of all repositories for the Gitea account, including
@@ -269,7 +277,9 @@ func (g *Gitea) Repos(ctx context.Context, u *model.User) ([]*model.Repo, error)
 		if repo.Archived {
 			continue
 		}
-		result = append(result, toRepo(repo))
+		wpRepo := toRepo(repo)
+		g.applyInternalCloneUrl(wpRepo)
+		result = append(result, wpRepo)
 	}
 	return result, err
 }
@@ -510,6 +520,7 @@ func (g *Gitea) Hook(ctx context.Context, r *http.Request) (*model.Repo, *model.
 	if err != nil {
 		return nil, nil, err
 	}
+	g.applyInternalCloneUrl(repo)
 
 	if pipeline != nil && pipeline.Event == model.EventRelease && pipeline.Commit == "" {
 		tagName := strings.Split(pipeline.Ref, "/")[2]
@@ -713,4 +724,22 @@ func (g *Gitea) perPage(ctx context.Context) int {
 		g.pageSize = api.MaxResponseItems
 	}
 	return g.pageSize
+}
+
+func (g *Gitea) applyInternalCloneUrl(repo *model.Repo) {
+	if g.internalClone && len(g.internalUrl) > 0 {
+		internalUrl, err := url.Parse(g.internalUrl)
+		if err != nil {
+			log.Error().Err(err).Msg("applying internal clone URL skipped")
+			return
+		}
+		cloneUrl, err := url.Parse(repo.Clone)
+		if err != nil {
+			log.Error().Err(err).Msg("applying internal clone URL skipped")
+			return
+		}
+		internalUrl.Path = cloneUrl.Path
+		repo.Clone = internalUrl.String()
+		log.Trace().Str("clone-url", repo.Clone).Msg("applied internal clone URL")
+	}
 }

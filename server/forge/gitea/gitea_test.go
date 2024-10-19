@@ -18,6 +18,7 @@ package gitea
 import (
 	"bytes"
 	"context"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -162,6 +163,20 @@ func Test_gitea(t *testing.T) {
 			g.Assert(utils.EqualSliceValues(b.ChangedFiles, []string{"README.md"})).IsTrue()
 		})
 	})
+}
+
+func TestInternalClone(t *testing.T) {
+	gitea := Gitea{
+		url:           "https://example.com",
+		internalUrl:   "http://gitea.local:3000",
+		internalClone: true,
+	}
+	repo := model.Repo{
+		Clone: gitea.url + "/test_name/repo_name.git",
+	}
+
+	gitea.applyInternalCloneUrl(&repo)
+	assert.Equal(t, "http://gitea.local:3000/test_name/repo_name.git", repo.Clone)
 }
 
 var (

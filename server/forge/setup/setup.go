@@ -70,6 +70,7 @@ func setupGitea(forge *model.Forge) (forge.Forge, error) {
 			return nil, err
 		}
 		opts.InternalURL = strings.TrimRight(serverInternalURL.String(), "/")
+		opts.InternalClone = forge.InternalClone
 	}
 
 	log.Trace().Msgf("Forge (gitea) opts: %#v", opts)

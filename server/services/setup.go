@@ -132,6 +132,7 @@ func setupForgeService(c *cli.Command, _store store.Store) error {
 	_forge.ClientSecret = strings.TrimSpace(c.String("forge-oauth-secret"))
 	_forge.URL = c.String("forge-url")
 	_forge.InternalURL = c.String("forge-internal-url")
+	_forge.InternalClone = c.Bool("forge-internal-clone")
 	_forge.SkipVerify = c.Bool("forge-skip-verify")
 	_forge.OAuthHost = c.String("forge-oauth-host")
 

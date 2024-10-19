@@ -329,6 +329,11 @@ var flags = append([]cli.Flag{
 		Usage:   "internal URL of the forge",
 		Sources: cli.EnvVars("WOODPECKER_FORGE_INTERNAL_URL", "WOODPECKER_GITEA_INTERNAL_URL"),
 	},
+	&cli.BoolFlag{
+		Name:    "forge-internal-clone",
+		Usage:   "whether to clone from internal URL of the forge",
+		Sources: cli.EnvVars("WOODPECKER_FORGE_INTERNAL_CLONE", "WOODPECKER_GITEA_INTERNAL_CLONE"),
+	},
 	&cli.StringFlag{
 		Sources: cli.NewValueSourceChain(
 			cli.File(getFirstNonEmptyEnvVar(

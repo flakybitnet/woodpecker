@@ -31,6 +31,7 @@ type Forge struct {
 	Type              ForgeType      `json:"type"                         xorm:"VARCHAR(250)"`
 	URL               string         `json:"url"                          xorm:"VARCHAR(500) 'url'"`
 	InternalURL       string         `json:"internal_url"                 xorm:"VARCHAR(500) 'internal_url'"`
+	InternalClone     bool           `json:"internal_clone"               xorm:"bool 'internal_clone'"`
 	Client            string         `json:"client,omitempty"             xorm:"VARCHAR(250)"`
 	ClientSecret      string         `json:"-"                            xorm:"VARCHAR(250)"` // do not expose client secret
 	SkipVerify        bool           `json:"skip_verify,omitempty"        xorm:"bool"`
