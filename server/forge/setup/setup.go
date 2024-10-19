@@ -64,6 +64,14 @@ func setupGitea(forge *model.Forge) (forge.Forge, error) {
 	if len(opts.URL) == 0 {
 		return nil, fmt.Errorf("WOODPECKER_GITEA_URL must be set")
 	}
+	if len(forge.InternalURL) > 0 {
+		serverInternalURL, err := url.Parse(forge.InternalURL)
+		if err != nil {
+			return nil, err
+		}
+		opts.InternalURL = strings.TrimRight(serverInternalURL.String(), "/")
+	}
+
 	log.Trace().Msgf("Forge (gitea) opts: %#v", opts)
 	return gitea.New(opts)
 }

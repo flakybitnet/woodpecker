@@ -321,8 +321,13 @@ var flags = append([]cli.Flag{
 	//
 	&cli.StringFlag{
 		Name:    "forge-url",
-		Usage:   "url of the forge",
+		Usage:   "public URL of the forge",
 		Sources: cli.EnvVars("WOODPECKER_FORGE_URL", "WOODPECKER_GITHUB_URL", "WOODPECKER_GITLAB_URL", "WOODPECKER_GITEA_URL", "WOODPECKER_FORGEJO_URL", "WOODPECKER_BITBUCKET_URL", "WOODPECKER_BITBUCKET_DC_URL"),
+	},
+	&cli.StringFlag{
+		Name:    "forge-internal-url",
+		Usage:   "internal URL of the forge",
+		Sources: cli.EnvVars("WOODPECKER_FORGE_INTERNAL_URL", "WOODPECKER_GITEA_INTERNAL_URL"),
 	},
 	&cli.StringFlag{
 		Sources: cli.NewValueSourceChain(

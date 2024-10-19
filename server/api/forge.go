@@ -124,6 +124,7 @@ func PatchForge(c *gin.Context) {
 		return
 	}
 	forge.URL = in.URL
+	forge.InternalURL = in.InternalURL
 	forge.Type = in.Type
 	forge.Client = in.Client
 	forge.OAuthHost = in.OAuthHost
@@ -162,6 +163,7 @@ func PostForge(c *gin.Context) {
 
 	forge := &model.Forge{
 		URL:               in.URL,
+		InternalURL:       in.InternalURL,
 		Type:              in.Type,
 		Client:            in.Client,
 		ClientSecret:      in.ClientSecret,
