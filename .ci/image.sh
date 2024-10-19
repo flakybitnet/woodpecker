@@ -5,8 +5,9 @@ set -a
 . .ci/lib.sh
 set +a
 
-echo "Setting authentication for $HARBOR_REGISTRY"
-setRegistryAuth "$KANIKO_AUTH_FILE" "$HARBOR_REGISTRY" "$HARBOR_CREDS"
+echo && echo "Setting authentication for $HARBOR_REGISTRY"
+authfile='/kaniko/.docker/config.json'
+setRegistryAuth "$authfile" "$HARBOR_REGISTRY" "$HARBOR_CREDS"
 
 image="$APP_NAME/$APP_COMPONENT:$APP_VERSION"
 dockerfile=".docker/Dockerfile-$APP_COMPONENT"
@@ -16,8 +17,8 @@ if [ "${IMAGE_DEBUG:-false}" = "true" ]; then
   dockerfile="$dockerfile-debug"
 fi
 
-echo "Building $image image"
+echo && echo "Building $image image"
 executor -c ./ -f "$dockerfile" -d "$HARBOR_REGISTRY/$image"
 
-echo 'Done'
+echo && echo 'Done'
 

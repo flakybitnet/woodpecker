@@ -5,7 +5,7 @@ set -a
 . .ci/lib.sh
 set +a
 
-echo "Building $APP_NAME-$APP_COMPONENT"
+echo && echo "Building $APP_NAME-$APP_COMPONENT"
 
 export GOPROXY="$GO_PROXY,https://proxy.golang.org,direct"
 export GOPATH='/woodpecker/go'
@@ -17,6 +17,7 @@ xldflags="$xldflags -X go.woodpecker-ci.org/woodpecker/v2/version.Version=$APP_V
 go build -v -ldflags "-s -w $xldflags" -o "dist/$APP_COMPONENT" "go.woodpecker-ci.org/woodpecker/v2/cmd/$APP_COMPONENT"
 
 mkdir -p ./dist/etc
+echo 'dist:'
 ls -lh ./dist
 
-echo 'Done'
+echo && echo 'Done'
