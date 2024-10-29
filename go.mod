@@ -52,6 +52,7 @@ require (
 	github.com/prometheus/client_golang v1.19.1
 	github.com/robfig/cron v1.2.0
 	github.com/rs/zerolog v1.33.0
+	github.com/sethvargo/go-retry v0.3.0
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0

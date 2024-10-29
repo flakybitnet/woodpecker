@@ -18,11 +18,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/sethvargo/go-retry"
 	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
-
 	"go.woodpecker-ci.org/woodpecker/v2/server/forge"
 	"go.woodpecker-ci.org/woodpecker/v2/server/forge/types"
 	"go.woodpecker-ci.org/woodpecker/v2/server/model"
@@ -55,15 +55,14 @@ func (f *forgeFetcher) Fetch(ctx context.Context, forge forge.Forge, user *model
 		timeout:  f.timeout,
 	}
 
-	// try to fetch multiple times
-	for i := 0; i < int(f.retryCount); i++ {
+	backoff := retry.WithMaxRetries(uint64(f.retryCount), retry.NewConstant(100*time.Millisecond))
+	err = retry.Do(ctx, backoff, func(ctx context.Context) error {
 		files, err = ffc.fetch(ctx, strings.TrimSpace(repo.Config))
 		if err != nil {
-			log.Trace().Err(err).Msgf("Fetching config files: Attempt #%d failed", i+1)
-		} else {
-			break
+			return retry.RetryableError(err)
 		}
-	}
+		return nil
+	})
 
 	return
 }
