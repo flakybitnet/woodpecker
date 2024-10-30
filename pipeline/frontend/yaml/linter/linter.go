@@ -142,7 +142,7 @@ func (l *Linter) lintImage(config *WorkflowConfig, c *types.Container, area stri
 
 func (l *Linter) lintPrivilegedPlugins(config *WorkflowConfig, c *types.Container, area string) error {
 	if utils.MatchImage(c.Image, "plugins/docker", "plugins/gcr", "plugins/ecr", "woodpeckerci/plugin-docker-buildx") {
-		msg := "Cannot use once by default privileged plugins, if needed add it too WOODPECKER_PLUGINS_PRIVILEGED"
+		msg := fmt.Sprintf("The formerly privileged plugin '%s' is no longer privileged by default, if required, add it to WOODPECKER_PLUGINS_PRIVILEGED", c.Image)
 		// check first if user did not add them back
 		if l.privilegedPlugins != nil && !utils.MatchImage(c.Image, *l.privilegedPlugins...) {
 			return newLinterError(msg, config.File, fmt.Sprintf("%s.%s", area, c.Name), false)

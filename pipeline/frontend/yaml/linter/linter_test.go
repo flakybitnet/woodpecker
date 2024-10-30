@@ -167,7 +167,7 @@ func TestLintErrors(t *testing.T) {
 		},
 		{
 			from: "{steps: { build: { image: plugins/docker, settings: { test: 'true' } } }, when: { branch: main, event: push } } }",
-			want: "Cannot use once by default privileged plugins, if needed add it too WOODPECKER_PLUGINS_PRIVILEGED",
+			want: "The formerly privileged plugin 'plugins/docker' is no longer privileged by default, if required, add it to WOODPECKER_PLUGINS_PRIVILEGED",
 		},
 		{
 			from: "{steps: { build: { image: golang, secrets: [ 'test' ] } }, when: { event: manual } }",
