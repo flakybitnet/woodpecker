@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -83,7 +84,8 @@ func CreatePipeline(c *gin.Context) {
 func createTmpPipeline(event model.WebhookEvent, commit *model.Commit, user *model.User, opts *model.PipelineOptions) *model.Pipeline {
 	message := "Manual"
 	if len(commit.Message) > 0 {
-		message = fmt.Sprintf("%s: %.48s", message, commit.Message)
+		commitHeader, _, _ := strings.Cut(commit.Message, "\n")
+		message = fmt.Sprintf("%s: %.48s", message, commitHeader)
 	}
 
 	return &model.Pipeline{
