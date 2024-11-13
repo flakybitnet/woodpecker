@@ -188,7 +188,7 @@ func cleanupPipelineLogs(store store.Store, retention time.Duration) {
 
 						firstEntry := logs[0]
 						firstEntry.Data = []byte(fmt.Sprintf(cleanupPipelineLogsMessageTemplate, retention))
-						err = store.LogAppend(firstEntry)
+						err = store.LogAppend(step, []*model.LogEntry{firstEntry})
 						if err != nil {
 							log.Error().Err(err).Str("task", cleanupPipelineLogsId).Msg("failed to add log stub")
 							continue
