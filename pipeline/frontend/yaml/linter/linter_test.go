@@ -162,7 +162,7 @@ func TestLintErrors(t *testing.T) {
 			want: "Cannot configure both entrypoint and settings",
 		},
 		{
-			from: "steps: { build: { image: golang, settings: { test: 'true' }, environment: [ 'TEST=true' ] } }",
+			from: "steps: { build: { image: golang, settings: { test: 'true' }, environment: { TEST: 'true' } } }",
 			want: "Should not configure both environment and settings",
 		},
 		{
@@ -172,6 +172,14 @@ func TestLintErrors(t *testing.T) {
 		{
 			from: "{steps: { build: { image: golang, secrets: [ 'test' ] } }, when: { event: manual } }",
 			want: "Lower-case secret is used, uppercasing all secret env vars will be removed in 3.0. In order to prevent disruption, you can uppercase secret name in pipeline definition in advance. Additionally you can lowercase env vars in used commands after 3.0 release.",
+		},
+		{
+			from: "steps: { build: { image: golang, environment: [ 'TEST=true' ] } }",
+			want: "List syntax for `environment` is deprecated, use map syntax instead",
+		},
+		{
+			from: "steps: { build: { image: golang, secrets: [ { source: mysql_username, target: mysql_username } ] } }",
+			want: "Alternative names syntax for `secrets` is deprecated, use list syntax or `from_secret` instead",
 		},
 	}
 

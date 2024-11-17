@@ -16,7 +16,6 @@ package linter
 
 import (
 	"fmt"
-	"strings"
 
 	"codeberg.org/6543/xyaml"
 	"go.uber.org/multierr"
@@ -126,6 +125,9 @@ func (l *Linter) lintContainers(config *WorkflowConfig, area string) error {
 		if err := l.lintPrivilegedPlugins(config, container, area); err != nil {
 			linterErr = multierr.Append(linterErr, err)
 		}
+		if err := l.lintContainerDeprecations(config, container, area); err != nil {
+			linterErr = multierr.Append(linterErr, err)
+		}
 	}
 
 	return linterErr
@@ -160,13 +162,43 @@ func (l *Linter) lintSettings(config *WorkflowConfig, c *types.Container, field 
 	if len(c.Entrypoint) != 0 {
 		return newLinterError("Cannot configure both entrypoint and settings", config.File, fmt.Sprintf("%s.%s", field, c.Name), false)
 	}
-	if len(c.Environment) != 0 {
+	if len(c.Environment.Map) != 0 {
 		return newLinterError("Should not configure both environment and settings", config.File, fmt.Sprintf("%s.%s", field, c.Name), true)
 	}
 	if len(c.Secrets.Secrets) != 0 {
 		return newLinterError("Should not configure both secrets and settings", config.File, fmt.Sprintf("%s.%s", field, c.Name), true)
 	}
 	return nil
+}
+
+func (l *Linter) lintContainerDeprecations(config *WorkflowConfig, c *types.Container, field string) (err error) {
+	if c.Environment.WasSlice {
+		err = multierr.Append(err, &errorTypes.PipelineError{
+			Type:    errorTypes.PipelineErrorTypeDeprecation,
+			Message: "List syntax for `environment` is deprecated, use map syntax instead",
+			Data: errors.DeprecationErrorData{
+				File:  config.File,
+				Field: fmt.Sprintf("%s.%s.environment", field, c.Name),
+				Docs:  "https://woodpecker-ci.org/docs/usage/environment",
+			},
+			IsWarning: true,
+		})
+	}
+
+	if c.Secrets.LegacyFormat {
+		err = multierr.Append(err, &errorTypes.PipelineError{
+			Type:    errorTypes.PipelineErrorTypeDeprecation,
+			Message: "Alternative names syntax for `secrets` is deprecated, use list syntax or `from_secret` instead",
+			Data: errors.DeprecationErrorData{
+				File:  config.File,
+				Field: fmt.Sprintf("%s.%s.secrets", field, c.Name),
+				Docs:  "https://woodpecker-ci.org/docs/usage/secrets#use-secrets-in-settings-and-environment",
+			},
+			IsWarning: true,
+		})
+	}
+
+	return err
 }
 
 func (l *Linter) lintTrusted(config *WorkflowConfig, c *types.Container, area string) error {
@@ -315,41 +347,6 @@ func (l *Linter) lintDeprecations(config *WorkflowConfig) (err error) {
 						File:  config.File,
 						Field: fmt.Sprintf("steps.%s.when[%d].event", step.Name, i),
 						Docs:  "https://woodpecker-ci.org/docs/usage/workflow-syntax#event",
-					},
-					IsWarning: true,
-				})
-			}
-		}
-	}
-
-	for _, step := range parsed.Steps.ContainerList {
-		for i, c := range step.Secrets.Secrets {
-			if c.Source != c.Target {
-				err = multierr.Append(err, &errorTypes.PipelineError{
-					Type:    errorTypes.PipelineErrorTypeDeprecation,
-					Message: "Secrets alternative names are deprecated, use environment with from_secret",
-					Data: errors.DeprecationErrorData{
-						File:  config.File,
-						Field: fmt.Sprintf("steps.%s.secrets[%d]", step.Name, i),
-						Docs:  "https://woodpecker-ci.org/docs/usage/secrets#use-secrets-in-settings-and-environment",
-					},
-					IsWarning: true,
-				})
-			}
-		}
-	}
-
-	for _, step := range parsed.Steps.ContainerList {
-		for i, secret := range step.Secrets.Secrets {
-			secretUpper := strings.ToUpper(secret.Target)
-			if secret.Target != secretUpper {
-				err = multierr.Append(err, &errorTypes.PipelineError{
-					Type:    errorTypes.PipelineErrorTypeDeprecation,
-					Message: "Lower-case secret is used, uppercasing all secret env vars will be removed in 3.0. In order to prevent disruption, you can uppercase secret name in pipeline definition in advance. Additionally you can lowercase env vars in used commands after 3.0 release.",
-					Data: errors.DeprecationErrorData{
-						File:  config.File,
-						Field: fmt.Sprintf("steps.%s.secrets[%d]", step.Name, i),
-						Docs:  "https://woodpecker-ci.org/docs/next/migrations#next",
 					},
 					IsWarning: true,
 				})

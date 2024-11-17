@@ -738,6 +738,7 @@
       "oneOf": [
         {
           "type": "array",
+          "description": "deprecated",
           "items": {
             "type": "string"
           },
@@ -761,6 +762,7 @@
           },
           {
             "type": "object",
+            "description": "deprecated",
             "required": ["source", "target"],
             "properties": {
               "source": {
