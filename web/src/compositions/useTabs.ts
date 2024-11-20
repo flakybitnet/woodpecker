@@ -6,6 +6,7 @@ import type { IconNames } from '~/components/atomic/Icon.vue';
 export interface Tab {
   id: string;
   title: string;
+  count?: number;
   icon?: IconNames;
   iconClass?: string;
 }
