@@ -76,6 +76,7 @@ func pipelineFromPush(hook *pushHook) *model.Pipeline {
 	if len(hook.Commits) > 1 {
 		link = hook.Compare
 	}
+	message, _, _ := strings.Cut(hook.HeadCommit.Message, "\n")
 
 	return &model.Pipeline{
 		Event:        model.EventPush,
@@ -83,7 +84,7 @@ func pipelineFromPush(hook *pushHook) *model.Pipeline {
 		Ref:          hook.Ref,
 		ForgeURL:     link,
 		Branch:       strings.TrimPrefix(hook.Ref, "refs/heads/"),
-		Message:      hook.HeadCommit.Message,
+		Message:      message,
 		Avatar:       expandAvatar(hook.Repo.HTMLURL, fixMalformedAvatar(hook.Sender.AvatarURL)),
 		Author:       hook.Sender.UserName,
 		Sender:       hook.Sender.UserName,
@@ -112,12 +113,13 @@ func getChangedFilesFromPushHook(hook *pushHook) []string {
 // pipelineFromPushTag extracts the Pipeline data from a Gitea push tag hook.
 func pipelineFromPushTag(hook *pushHook) *model.Pipeline {
 	tag := strings.TrimPrefix(hook.Ref, "refs/tags/")
+	message, _, _ := strings.Cut(hook.HeadCommit.Message, "\n")
 	return &model.Pipeline{
 		Event:        model.EventTag,
 		Commit:       hook.After,
 		Ref:          hook.Ref,
 		ForgeURL:     fmt.Sprintf("%s/src/tag/%s", hook.Repo.HTMLURL, tag),
-		Message:      hook.HeadCommit.Message,
+		Message:      message,
 		Avatar:       expandAvatar(hook.Repo.HTMLURL, fixMalformedAvatar(hook.Sender.AvatarURL)),
 		Author:       hook.Sender.UserName,
 		Sender:       hook.Sender.UserName,
