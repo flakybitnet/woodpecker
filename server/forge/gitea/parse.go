@@ -30,16 +30,12 @@ import (
 const (
 	hookEvent       = "X-Gitea-Event"
 	hookPush        = "push"
-	hookCreated     = "create"
 	hookPullRequest = "pull_request"
 	hookRelease     = "release"
 
 	actionOpen  = "opened"
 	actionSync  = "synchronized"
 	actionClose = "closed"
-
-	refBranch = "branch"
-	refTag    = "tag"
 )
 
 // parseHook parses a Gitea hook from an http.Request and returns
@@ -49,8 +45,6 @@ func parseHook(r *http.Request) (*model.Repo, *model.Pipeline, error) {
 	switch hookType {
 	case hookPush:
 		return parsePushHook(r.Body)
-	case hookCreated:
-		return parseCreatedHook(r.Body)
 	case hookPullRequest:
 		return parsePullRequestHook(r.Body)
 	case hookRelease:
@@ -68,36 +62,19 @@ func parsePushHook(payload io.Reader) (repo *model.Repo, pipeline *model.Pipelin
 		return nil, nil, err
 	}
 
-	// ignore push events for tags
-	if strings.HasPrefix(push.Ref, "refs/tags/") {
-		return nil, nil, nil
-	}
-
-	// TODO: is this even needed?
-	if push.RefType == refBranch {
-		return nil, nil, nil
-	}
-
 	repo = toRepo(push.Repo)
-	pipeline = pipelineFromPush(push)
+	switch {
+	case strings.HasPrefix(push.Ref, "refs/heads/"):
+		pipeline = pipelineFromPush(push)
+	case strings.HasPrefix(push.Ref, "refs/tags/"):
+		// Gitea sends push hooks when tags are created.
+		// The push hook contains more information than the tag created hook, so we choose to use the push hook for tags.
+		pipeline = pipelineFromPushTag(push)
+	default:
+		log.Debug().Str("ref", push.Ref).Msg("skipping unsupported hook push reference")
+	}
+
 	return repo, pipeline, err
-}
-
-// parseCreatedHook parses a push hook and returns the Repo and Pipeline details.
-// If the commit type is unsupported nil values are returned.
-func parseCreatedHook(payload io.Reader) (repo *model.Repo, pipeline *model.Pipeline, err error) {
-	push, err := parsePush(payload)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	if push.RefType != refTag {
-		return nil, nil, nil
-	}
-
-	repo = toRepo(push.Repo)
-	pipeline = pipelineFromTag(push)
-	return repo, pipeline, nil
 }
 
 // parsePullRequestHook parses a pull_request hook and returns the Repo and Pipeline details.
@@ -113,7 +90,7 @@ func parsePullRequestHook(payload io.Reader) (*model.Repo, *model.Pipeline, erro
 	}
 
 	if pr.PullRequest == nil {
-		// this should never have happened but it did - so we check
+		// this should never have happened, but it did - so we check
 		return nil, nil, fmt.Errorf("parsed pull_request webhook does not contain pull_request info")
 	}
 

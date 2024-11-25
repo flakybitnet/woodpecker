@@ -72,21 +72,9 @@ func toTeam(from *gitea.Organization, link string) *model.Team {
 
 // pipelineFromPush extracts the Pipeline data from a Gitea push hook.
 func pipelineFromPush(hook *pushHook) *model.Pipeline {
-	avatar := expandAvatar(
-		hook.Repo.HTMLURL,
-		fixMalformedAvatar(hook.Sender.AvatarURL),
-	)
-
-	var message string
-	link := hook.Compare
-	if len(hook.Commits) > 0 {
-		message = hook.Commits[0].Message
-		if len(hook.Commits) == 1 {
-			link = hook.Commits[0].URL
-		}
-	} else {
-		message = hook.HeadCommit.Message
-		link = hook.HeadCommit.URL
+	link := hook.HeadCommit.URL
+	if len(hook.Commits) > 1 {
+		link = hook.Compare
 	}
 
 	return &model.Pipeline{
@@ -95,12 +83,12 @@ func pipelineFromPush(hook *pushHook) *model.Pipeline {
 		Ref:          hook.Ref,
 		ForgeURL:     link,
 		Branch:       strings.TrimPrefix(hook.Ref, "refs/heads/"),
-		Message:      message,
-		Avatar:       avatar,
+		Message:      hook.HeadCommit.Message,
+		Avatar:       expandAvatar(hook.Repo.HTMLURL, fixMalformedAvatar(hook.Sender.AvatarURL)),
 		Author:       hook.Sender.UserName,
+		Sender:       hook.Sender.UserName,
 		Email:        hook.Sender.Email,
 		Timestamp:    time.Now().UTC().Unix(),
-		Sender:       hook.Sender.UserName,
 		ChangedFiles: getChangedFilesFromPushHook(hook),
 	}
 }
@@ -121,26 +109,21 @@ func getChangedFilesFromPushHook(hook *pushHook) []string {
 	return utils.DeduplicateStrings(files)
 }
 
-// pipelineFromTag extracts the Pipeline data from a Gitea tag hook.
-func pipelineFromTag(hook *pushHook) *model.Pipeline {
-	avatar := expandAvatar(
-		hook.Repo.HTMLURL,
-		fixMalformedAvatar(hook.Sender.AvatarURL),
-	)
-	ref := strings.TrimPrefix(hook.Ref, "refs/tags/")
-	message := fmt.Sprintf("%s: %.48s", "Tag", ref)
-
+// pipelineFromPushTag extracts the Pipeline data from a Gitea push tag hook.
+func pipelineFromPushTag(hook *pushHook) *model.Pipeline {
+	tag := strings.TrimPrefix(hook.Ref, "refs/tags/")
 	return &model.Pipeline{
-		Event:     model.EventTag,
-		Commit:    hook.Sha,
-		Ref:       fmt.Sprintf("refs/tags/%s", ref),
-		ForgeURL:  fmt.Sprintf("%s/src/tag/%s", hook.Repo.HTMLURL, ref),
-		Message:   message,
-		Avatar:    avatar,
-		Author:    hook.Sender.UserName,
-		Sender:    hook.Sender.UserName,
-		Email:     hook.Sender.Email,
-		Timestamp: time.Now().UTC().Unix(),
+		Event:        model.EventTag,
+		Commit:       hook.After,
+		Ref:          hook.Ref,
+		ForgeURL:     fmt.Sprintf("%s/src/tag/%s", hook.Repo.HTMLURL, tag),
+		Message:      hook.HeadCommit.Message,
+		Avatar:       expandAvatar(hook.Repo.HTMLURL, fixMalformedAvatar(hook.Sender.AvatarURL)),
+		Author:       hook.Sender.UserName,
+		Sender:       hook.Sender.UserName,
+		Email:        hook.Sender.Email,
+		Timestamp:    time.Now().UTC().Unix(),
+		ChangedFiles: getChangedFilesFromPushHook(hook),
 	}
 }
 
