@@ -65,6 +65,7 @@ var migrationTasks = []*xormigrate.Migration{
 	&alterTableRegistriesFixRequiredFields,
 	&fixV31Registries,
 	&correctPotentialCorruptOrgsUsersRelation,
+	&gatedToRequireApproval,
 }
 
 var allBeans = []any{
