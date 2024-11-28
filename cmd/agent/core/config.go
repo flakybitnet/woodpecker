@@ -59,6 +59,10 @@ func readAgentConfig(agentConfigPath string) AgentConfig {
 }
 
 func writeAgentConfig(conf AgentConfig, agentConfigPath string) error {
+	if agentConfigPath == "" {
+		return nil
+	}
+
 	rawAgentConf, err := json.Marshal(conf)
 	if err != nil {
 		log.Error().Err(err).Msg("could not marshal agent config")
