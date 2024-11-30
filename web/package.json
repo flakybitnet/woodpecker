@@ -28,12 +28,12 @@
     "js-base64": "~3.7.7",
     "lodash": "~4.17.21",
     "node-emoji": "~2.1.3",
-    "pinia": "~2.2.6",
+    "pinia": "~2.2.8",
     "prismjs": "~1.29.0",
     "semver": "~7.6.3",
     "simple-icons": "~13.5.0",
     "vue": "~3.4.38",
-    "vue-i18n": "~10.0.4",
+    "vue-i18n": "~10.0.5",
     "vue-router": "~4.4.5"
   },
   "devDependencies": {
@@ -60,7 +60,7 @@
     "typescript": "~5.5.4",
     "vite": "~5.4.11",
     "vite-plugin-prismjs": "^0.0.11",
-    "vite-plugin-windicss": "~1.9.3",
+    "vite-plugin-windicss": "~1.9.4",
     "vite-svg-loader": "~5.1.0",
     "vitest": "~2.0.5",
     "vue-tsc": "~2.0.29",
