@@ -25,6 +25,7 @@ when:
       exclude: main
     event:
       - manual
+      - push
       - tag
     evaluate: 'RUN_COMPONENTS == "" || APP_COMPONENT in split(RUN_COMPONENTS, ",")'
 
