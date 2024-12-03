@@ -1,14 +1,14 @@
 <!-- cSpell:ignore radiobox timelapse -->
 <template>
-  <SvgIcon v-if="name === 'duration'" :path="mdiTimelapse" size="24" />
-  <SvgIcon v-else-if="name === 'since'" :path="mdiClockTimeEightOutline" size="24" />
-  <SvgIcon v-else-if="name === 'push'" :path="mdiSourceBranch" size="24" />
-  <SvgIcon v-else-if="name === 'pull-request'" :path="mdiSourcePull" size="24" />
-  <SvgIcon v-else-if="name === 'pull-request-closed'" :path="mdiSourceMerge" size="24" />
-  <SvgIcon v-else-if="name === 'manual-pipeline'" :path="mdiGestureTap" size="24" />
-  <SvgIcon v-else-if="name === 'tag'" :path="mdiTagOutline" size="24" />
-  <SvgIcon v-else-if="name === 'deployment'" :path="mdiPackageVariant" size="24" />
-  <SvgIcon v-else-if="name === 'commit'" :path="mdiSourceCommit" size="24" />
+  <SvgIcon v-if="name === 'duration'" :path="mdiTimelapse" size="20" />
+  <SvgIcon v-else-if="name === 'since'" :path="mdiClockTimeEightOutline" size="20" />
+  <SvgIcon v-else-if="name === 'push'" :path="mdiSourceBranch" size="20" />
+  <SvgIcon v-else-if="name === 'pull-request'" :path="mdiSourcePull" size="20" />
+  <SvgIcon v-else-if="name === 'pull-request-closed'" :path="mdiSourceMerge" size="20" />
+  <SvgIcon v-else-if="name === 'manual-pipeline'" :path="mdiGestureTap" size="20" />
+  <SvgIcon v-else-if="name === 'tag'" :path="mdiTagOutline" size="20" />
+  <SvgIcon v-else-if="name === 'deployment'" :path="mdiPackageVariant" size="20" />
+  <SvgIcon v-else-if="name === 'commit'" :path="mdiSourceCommit" size="20" />
   <SvgIcon v-else-if="name === 'back'" :path="mdiArrowLeft" size="24" />
   <SvgIcon v-else-if="name === 'github'" :path="mdiGithub" size="32" />
   <SvgIcon v-else-if="name === 'repo'" :path="mdiGit" size="32" />
@@ -46,6 +46,7 @@
   <SvgIcon v-else-if="name === 'edit'" :path="mdiPencil" size="24" />
   <SvgIcon v-else-if="name === 'download'" :path="mdiDownloadCircle" size="24" />
   <SvgIcon v-else-if="name === 'stopwatch'" :path="mdiAlarm" size="24" />
+  <SvgIcon v-else-if="name === 'pp-item-cron-user'" :path="mdiAlarm" size="32" />
   <SvgIcon v-else-if="name === 'auto-scroll'" :path="mdiDownload" size="24" />
   <SvgIcon v-else-if="name === 'auto-scroll-off'" :path="mdiDownloadOff" size="24" />
   <SvgIcon v-else-if="name === 'pause'" :path="mdiPause" size="24" />
@@ -166,6 +167,7 @@ export type IconNames =
   | 'close'
   | 'edit'
   | 'stopwatch'
+  | 'pp-item-cron-user'
   | 'download'
   | 'auto-scroll'
   | 'auto-scroll-off'

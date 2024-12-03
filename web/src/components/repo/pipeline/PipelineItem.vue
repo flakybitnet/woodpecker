@@ -1,6 +1,6 @@
 <template>
   <ListItem v-if="pipeline" class="p-0 w-full">
-    <div class="flex w-11 items-center md:mr-4">
+    <div class="flex w-11 items-center">
       <div
         class="h-full w-3"
         :class="{
@@ -10,6 +10,7 @@
           'bg-wp-state-ok-100': pipelineStatusColors[pipeline.status] === 'green',
           'bg-wp-state-info-100': pipelineStatusColors[pipeline.status] === 'blue',
         }"
+        :title="`Pipeline: ${pipeline.number}`"
       />
       <div class="w-8 flex flex-wrap justify-between items-center h-full">
         <PipelineRunningIcon v-if="pipeline.status === 'started' || pipeline.status === 'running'" />
@@ -19,11 +20,7 @@
 
     <div class="flex py-2 px-4 flex-grow min-w-0 <md:flex-wrap">
 
-      <div class="w-full md:w-auto md:mx-4 flex items-center min-w-0">
-        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-        <span class="text-wp-text-alt-100 <md:hidden">#{{ pipeline.number }}</span>
-        <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-        <span class="text-wp-text-alt-100 <md:hidden mx-2">-</span>
+      <div class="w-full md:w-auto md:mr-4 flex items-center min-w-0">
         <span
           class="text-wp-text-100 <md:underline whitespace-nowrap overflow-hidden overflow-ellipsis"
           :title="message"
@@ -48,7 +45,7 @@
           <span class="truncate">{{ prettyRef }}</span>
         </div>
 
-        <div class="flex space-x-2 items-center min-w-0">
+        <div class="flex space-x-2 items-center min-w-0" :title="`Commit: ${pipeline.commit}`">
           <Icon name="commit" />
           <span class="truncate">{{ pipeline.commit.slice(0, 10) }}</span>
         </div>
@@ -64,9 +61,9 @@
         </div>
       </div>
 
-      <div class="<md:hidden flex items-center flex-shrink-0">
-        <Icon v-if="pipeline.event === 'cron'" name="stopwatch" class="text-wp-text-100" />
-        <img v-else class="rounded-md w-8" :src="pipeline.author_avatar" />
+      <div class="<md:hidden flex items-center flex-shrink-0 mx-2">
+        <Icon v-if="pipeline.event === 'cron'" name="pp-item-cron-user" class="text-wp-text-100" />
+        <img v-else class="rounded-md w-8" :src="pipeline.author_avatar" :title="pipeline.author" />
       </div>
 
     </div>
