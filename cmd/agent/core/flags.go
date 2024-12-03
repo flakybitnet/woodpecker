@@ -82,13 +82,13 @@ var flags = []cli.Flag{
 		Value:   ":3000",
 	},
 	&cli.DurationFlag{
-		Sources: cli.EnvVars("WOODPECKER_KEEPALIVE_TIME"),
-		Name:    "keepalive-time",
+		Sources: cli.EnvVars("WOODPECKER_GRPC_KEEPALIVE_TIME"),
+		Name:    "grpc-keepalive-time",
 		Usage:   "after a duration of this time of no activity, the agent pings the server to check if the transport is still alive",
 	},
 	&cli.DurationFlag{
-		Sources: cli.EnvVars("WOODPECKER_KEEPALIVE_TIMEOUT"),
-		Name:    "keepalive-timeout",
+		Sources: cli.EnvVars("WOODPECKER_GRPC_KEEPALIVE_TIMEOUT"),
+		Name:    "grpc-keepalive-timeout",
 		Usage:   "after pinging for a keepalive check, the agent waits for a duration of this time before closing the connection if no activity",
 		Value:   time.Second * 20,
 	},

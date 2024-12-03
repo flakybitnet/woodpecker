@@ -138,13 +138,13 @@ Enable healthcheck endpoint.
 
 Configures healthcheck endpoint address.
 
-### `WOODPECKER_KEEPALIVE_TIME`
+### `WOODPECKER_GRPC_KEEPALIVE_TIME`
 
 > Default: empty
 
 After a duration of this time of no activity, the agent pings the server to check if the transport is still alive.
 
-### `WOODPECKER_KEEPALIVE_TIMEOUT`
+### `WOODPECKER_GRPC_KEEPALIVE_TIMEOUT`
 
 > Default: `20s`
 
