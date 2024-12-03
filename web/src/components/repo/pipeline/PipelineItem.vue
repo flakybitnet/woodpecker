@@ -18,10 +18,6 @@
     </div>
 
     <div class="flex py-2 px-4 flex-grow min-w-0 <md:flex-wrap">
-      <div class="<md:hidden flex items-center flex-shrink-0">
-        <Icon v-if="pipeline.event === 'cron'" name="stopwatch" class="text-wp-text-100" />
-        <img v-else class="rounded-md w-8" :src="pipeline.author_avatar" />
-      </div>
 
       <div class="w-full md:w-auto md:mx-4 flex items-center min-w-0">
         <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
@@ -67,6 +63,12 @@
           <span class="truncate">{{ since }}</span>
         </div>
       </div>
+
+      <div class="<md:hidden flex items-center flex-shrink-0">
+        <Icon v-if="pipeline.event === 'cron'" name="stopwatch" class="text-wp-text-100" />
+        <img v-else class="rounded-md w-8" :src="pipeline.author_avatar" />
+      </div>
+
     </div>
   </ListItem>
 </template>
