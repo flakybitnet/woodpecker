@@ -47,6 +47,7 @@
   <SvgIcon v-else-if="name === 'download'" :path="mdiDownloadCircle" size="24" />
   <SvgIcon v-else-if="name === 'stopwatch'" :path="mdiAlarm" size="24" />
   <SvgIcon v-else-if="name === 'pp-item-cron-user'" :path="mdiAlarm" size="32" />
+  <SvgIcon v-else-if="name === 'pp-details-cron-user'" :path="mdiAlarm" size="32" />
   <SvgIcon v-else-if="name === 'auto-scroll'" :path="mdiDownload" size="24" />
   <SvgIcon v-else-if="name === 'auto-scroll-off'" :path="mdiDownloadOff" size="24" />
   <SvgIcon v-else-if="name === 'pause'" :path="mdiPause" size="24" />
@@ -168,6 +169,7 @@ export type IconNames =
   | 'edit'
   | 'stopwatch'
   | 'pp-item-cron-user'
+  | 'pp-details-cron-user'
   | 'download'
   | 'auto-scroll'
   | 'auto-scroll-off'

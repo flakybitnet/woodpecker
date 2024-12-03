@@ -5,7 +5,7 @@
     >
       <div class="flex space-x-1 items-center flex-shrink-0">
         <div class="flex items-center">
-          <Icon v-if="pipeline.event === 'cron'" name="stopwatch" />
+          <Icon v-if="pipeline.event === 'cron'" name="pp-details-cron-user" />
           <img v-else class="rounded-md w-6" :src="pipeline.author_avatar" />
         </div>
         <span>{{ pipeline.author }}</span>
@@ -99,7 +99,7 @@
               v-for="step in workflow.children"
               :key="step.pid"
               type="button"
-              :title="step.name"
+              :title="`${step.name} (${step.type})`"
               class="flex p-2 gap-2 border-2 border-transparent rounded-md items-center hover-effect hover:bg-wp-background-300 dark:hover:bg-wp-background-400 w-full"
               :class="{
                 'bg-wp-background-300 dark:bg-wp-background-400': selectedStepId && selectedStepId === step.pid,
