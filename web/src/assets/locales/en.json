@@ -25,7 +25,7 @@
   },
   "time": {
     "not_started": "not started yet",
-    "just_now": "just now"
+    "recently": "recently"
   },
   "repo": {
     "manual_pipeline": {

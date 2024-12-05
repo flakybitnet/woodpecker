@@ -1,23 +1,32 @@
 import { useI18n } from 'vue-i18n';
+import '@formatjs/intl-durationformat/polyfill';
 
-let currentLocale = 'en';
+let currentLocale: string;
+let relativeFormatter: Intl.RelativeTimeFormat;
+let durationFormatter: Intl.DurationFormat;
 
-function splitDuration(durationMs: number) {
-  const totalSeconds = durationMs / 1000;
-  const totalMinutes = totalSeconds / 60;
-  const totalHours = totalMinutes / 60;
+setDateLocale('en')
 
-  const seconds = Math.floor(totalSeconds) % 60;
-  const minutes = Math.floor(totalMinutes) % 60;
-  const hours = Math.floor(totalHours) % 24;
+function splitDuration(durationMs: number) { // for example 3222111444
+  const totalSeconds = durationMs / 1000; // for example 3222111.444
+  const totalMinutes = totalSeconds / 60; // for example 53701.8574
+  const totalHours = totalMinutes / 60; // for example 895.03095
+  const totalDays = totalHours / 24; // for example 37.29295
+
+  const seconds = Math.floor(totalSeconds) % 60; // for 3222111.444 total seconds it will be 51
+  const minutes = Math.floor(totalMinutes) % 60; // for 53701.8574 total minutes it will be 1
+  const hours = Math.floor(totalHours) % 24; // for 895.03095 total hours it will be 7
+  const days = Math.floor(totalDays); // for 37.29295 total days it will be 37
 
   return {
     seconds,
     minutes,
     hours,
+    days,
     totalHours,
     totalMinutes,
     totalSeconds,
+    totalDays
   };
 }
 
@@ -29,73 +38,56 @@ function toLocaleString(date: Date) {
 }
 
 function timeAgo(date: number) {
-  const seconds = Math.floor((new Date().getTime() - date) / 1000);
+  const d = splitDuration(Date.now() - date);
 
-  const formatter = new Intl.RelativeTimeFormat(currentLocale);
-
-  let interval = seconds / 31536000;
-  if (interval > 1) {
-    return formatter.format(-Math.round(interval), 'year');
+  if (d.totalDays > 365) {
+    return relativeFormatter.format(-Math.floor(d.totalDays/365), 'year');
   }
-  interval = seconds / 2592000;
-  if (interval > 1) {
-    return formatter.format(-Math.round(interval), 'month');
+  if (d.totalDays > 30) {
+    return relativeFormatter.format(-Math.floor(d.totalDays/30), 'month');
   }
-  interval = seconds / 86400;
-  if (interval > 1) {
-    return formatter.format(-Math.round(interval), 'day');
+  if (d.totalDays > 1) {
+    return relativeFormatter.format(-Math.floor(d.totalDays), 'day');
   }
-  interval = seconds / 3600;
-  if (interval > 1) {
-    return formatter.format(-Math.round(interval), 'hour');
+  if (d.totalHours > 1) {
+    return relativeFormatter.format(-Math.floor(d.totalHours), 'hour');
   }
-  interval = seconds / 60;
-  if (interval > 0.5) {
-    return formatter.format(-Math.round(interval), 'minute');
+  if (d.totalMinutes > 1) {
+    return relativeFormatter.format(-Math.floor(d.totalMinutes), 'minute');
   }
-  return useI18n().t('time.just_now');
+  return useI18n().t('time.recently');
 }
 
 function prettyDuration(durationMs: number) {
-  const t = splitDuration(durationMs);
-
-  if (t.totalHours > 1) {
-    return Intl.NumberFormat(currentLocale, { style: 'unit', unit: 'hour', unitDisplay: 'long' }).format(
-      Math.round(t.totalHours),
-    );
-  }
-  if (t.totalMinutes > 1) {
-    return Intl.NumberFormat(currentLocale, { style: 'unit', unit: 'minute', unitDisplay: 'long' }).format(
-      Math.round(t.totalMinutes),
-    );
-  }
-  return Intl.NumberFormat(currentLocale, { style: 'unit', unit: 'second', unitDisplay: 'long' }).format(
-    Math.round(t.totalSeconds),
-  );
+  const d = splitDuration(durationMs);
+  return durationFormatter.format({days: d.days, hours: d.hours, minutes: d.minutes, seconds: d.seconds});
 }
 
 function durationAsNumber(durationMs: number): string {
   const { seconds, minutes, hours } = splitDuration(durationMs);
 
-  const minSecFormat = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  // 1:1 => 01:01
+  const minutesSecondsFormatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
   if (hours > 0) {
-    return `${hours.toString().padStart(2, '0')}:${minSecFormat}`;
+    return `${hours.toString().padStart(2, '0')}:${minutesSecondsFormatted}`; // 1:1:1 => 01:01:01
   }
 
-  return minSecFormat;
+  return minutesSecondsFormatted;
+}
+
+async function setDateLocale(locale: string) {
+  currentLocale = locale;
+  relativeFormatter = new Intl.RelativeTimeFormat(currentLocale, { style: "narrow" });
+  durationFormatter = new Intl.DurationFormat(currentLocale, { style: "narrow" });
 }
 
 export function useDate() {
-  async function setDayjsLocale(locale: string) {
-    currentLocale = locale;
-  }
-
   return {
     toLocaleString,
     timeAgo,
     prettyDuration,
-    setDayjsLocale,
+    setDateLocale,
     durationAsNumber,
   };
 }
