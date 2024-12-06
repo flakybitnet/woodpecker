@@ -2,7 +2,8 @@
 <template>
   <SvgIcon v-if="name === 'duration'" :path="mdiTimelapse" size="20" />
   <SvgIcon v-else-if="name === 'since'" :path="mdiClockTimeEightOutline" size="20" />
-  <SvgIcon v-else-if="name === 'push'" :path="mdiSourceBranch" size="20" />
+  <SvgIcon v-else-if="name === 'push'" :path="mdiSourceBranchSync" size="20" />
+  <SvgIcon v-else-if="name === 'branch'" :path="mdiSourceBranch" size="20" />
   <SvgIcon v-else-if="name === 'pull-request'" :path="mdiSourcePull" size="20" />
   <SvgIcon v-else-if="name === 'pull-request-closed'" :path="mdiSourceMerge" size="20" />
   <SvgIcon v-else-if="name === 'manual-pipeline'" :path="mdiGestureTap" size="20" />
@@ -45,9 +46,7 @@
   <SvgIcon v-else-if="name === 'close'" :path="mdiCloseCircleOutline" size="24" />
   <SvgIcon v-else-if="name === 'edit'" :path="mdiPencil" size="24" />
   <SvgIcon v-else-if="name === 'download'" :path="mdiDownloadCircle" size="24" />
-  <SvgIcon v-else-if="name === 'stopwatch'" :path="mdiAlarm" size="24" />
-  <SvgIcon v-else-if="name === 'pp-item-cron-user'" :path="mdiAlarm" size="32" />
-  <SvgIcon v-else-if="name === 'pp-details-cron-user'" :path="mdiAlarm" size="32" />
+  <SvgIcon v-else-if="name === 'stopwatch'" :path="mdiAlarm" size="20" />
   <SvgIcon v-else-if="name === 'auto-scroll'" :path="mdiDownload" size="24" />
   <SvgIcon v-else-if="name === 'auto-scroll-off'" :path="mdiDownloadOff" size="24" />
   <SvgIcon v-else-if="name === 'pause'" :path="mdiPause" size="24" />
@@ -115,6 +114,7 @@ import {
   mdiRadioboxBlank,
   mdiRadioboxIndeterminateVariant,
   mdiSourceBranch,
+  mdiSourceBranchSync,
   mdiSourceCommit,
   mdiSourceMerge,
   mdiSourcePull,
@@ -131,6 +131,7 @@ export type IconNames =
   | 'duration'
   | 'since'
   | 'push'
+  | 'branch'
   | 'pull-request'
   | 'pull-request-closed'
   | 'manual-pipeline'
@@ -168,8 +169,6 @@ export type IconNames =
   | 'close'
   | 'edit'
   | 'stopwatch'
-  | 'pp-item-cron-user'
-  | 'pp-details-cron-user'
   | 'download'
   | 'auto-scroll'
   | 'auto-scroll-off'

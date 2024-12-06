@@ -10,88 +10,84 @@
   >
     <template #title>
       <span>
-        <router-link :to="{ name: 'org', params: { orgId: repo.org_id } }" class="hover:underline">{{
-          repo.owner
-          /* eslint-disable-next-line @intlify/vue-i18n/no-raw-text */
-        }}</router-link>
-        /
-        <router-link :to="{ name: 'repo' }" class="hover:underline">{{ repo.name }}</router-link>
+        <router-link :to="{ name: 'org', params: { orgId: repo.org_id } }" class="hover:underline">
+          {{ repo.owner }}
+        </router-link> /
+        <router-link :to="{ name: 'repo' }" class="hover:underline">{{ repo.name }}</router-link> /
+        {{ pipelineId }}
       </span>
     </template>
 
-    <template #titleActions>
-      <div class="flex md:items-center flex-col gap-2 md:flex-row md:justify-between min-w-0">
-        <div class="flex content-start gap-2 min-w-0">
-          <PipelineStatusIcon :status="pipeline.status" class="flex flex-shrink-0" />
-          <span class="flex-shrink-0 text-center">{{ $t('repo.pipeline.pipeline', { pipelineId }) }}</span>
-          <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
-          <span class="hidden md:inline-block">-</span>
-          <span class="min-w-0 whitespace-nowrap overflow-hidden overflow-ellipsis" :title="message">{{
-            shortMessage
-          }}</span>
-        </div>
+    <template #titleMiddle>
+      <div class="flex items-center space-x-2 min-w-0">
+        <PipelineEventIcon :pipeline="pipeline" size="22" />
+        <span class="text-xl font-semibold min-w-0 whitespace-nowrap overflow-hidden overflow-ellipsis" :title="message">
+          {{ shortMessage }}
+        </span>
+      </div>
+    </template>
 
-        <template v-if="repoPermissions!.push && pipeline.status !== 'declined' && pipeline.status !== 'blocked'">
-          <div class="flex content-start gap-x-2">
-            <Button
-              v-if="pipeline.status === 'pending' || pipeline.status === 'running'"
-              class="flex-shrink-0"
-              :text="$t('repo.pipeline.actions.cancel')"
-              :is-loading="isCancelingPipeline"
-              @click="cancelPipeline"
-            />
-            <Button
-              class="flex-shrink-0"
-              :text="$t('repo.pipeline.actions.restart')"
-              :is-loading="isRestartingPipeline"
-              @click="restartPipeline"
-            />
-            <Button
-              v-if="pipeline.status === 'success' && repo.allow_deploy"
-              class="flex-shrink-0"
-              :text="$t('repo.pipeline.actions.deploy')"
-              @click="showDeployPipelinePopup = true"
-            />
-            <DeployPipelinePopup
-              :pipeline-number="pipelineId"
-              :open="showDeployPipelinePopup"
-              @close="showDeployPipelinePopup = false"
-            />
-          </div>
-        </template>
+    <template v-if="repoPermissions!.push && pipeline.status !== 'declined' && pipeline.status !== 'blocked'" #titleActions>
+      <div class="flex content-start gap-x-2">
+        <Button
+          v-if="pipeline.status === 'pending' || pipeline.status === 'running'"
+          class="flex-shrink-0"
+          :text="$t('repo.pipeline.actions.cancel')"
+          :is-loading="isCancelingPipeline"
+          @click="cancelPipeline"
+        />
+        <Button
+          class="flex-shrink-0"
+          :text="$t('repo.pipeline.actions.restart')"
+          :is-loading="isRestartingPipeline"
+          @click="restartPipeline"
+        />
+        <Button
+          v-if="pipeline.status === 'success' && repo.allow_deploy"
+          class="flex-shrink-0"
+          :text="$t('repo.pipeline.actions.deploy')"
+          @click="showDeployPipelinePopup = true"
+        />
+        <DeployPipelinePopup
+          :pipeline-number="pipelineId"
+          :open="showDeployPipelinePopup"
+          @close="showDeployPipelinePopup = false"
+        />
       </div>
     </template>
 
     <template #tabActions>
       <div class="flex gap-x-4">
+        <div class="flex space-x-1 items-center flex-shrink-0" :title="$t('repo.pipeline.duration')">
+          <Icon name="duration" />
+          <span>{{ duration }}</span>
+        </div>
         <div class="flex space-x-1 items-center flex-shrink-0" :title="$t('repo.pipeline.created', { created })">
           <Icon name="since" />
           <span>{{ since }}</span>
         </div>
-        <div class="flex space-x-1 items-center flex-shrink-0" :title="$t('repo.pipeline.duration')">
-          <Icon name="duration" />
-          <span>{{ duration }}</span>
+        <div class="flex space-x-1 items-center flex-shrink-0">
+          <PipelineAvatar :pipeline size="20"/>
+          <span>{{ pipeline.author }}</span>
         </div>
       </div>
     </template>
 
     <Tab id="tasks" :title="$t('repo.pipeline.tasks')" />
-    <Tab
-      v-if="pipeline.errors && pipeline.errors.length > 0"
-      id="errors"
-      icon="attention"
-      :title="
-        pipeline.errors.some((e) => !e.is_warning)
-          ? $t('repo.pipeline.errors', { count: pipeline.errors?.length })
-          : $t('repo.pipeline.warnings', { count: pipeline.errors?.length })
-      "
-      :icon-class="pipeline.errors.some((e) => !e.is_warning) ? 'text-wp-state-error-100' : 'text-wp-state-warn-100'"
-    />
     <Tab id="config" :title="$t('repo.pipeline.config')" />
     <Tab
       v-if="pipeline.changed_files && pipeline.changed_files.length > 0"
       id="changed-files"
-      :title="$t('repo.pipeline.files', { files: pipeline.changed_files?.length })"
+      :title="$t('repo.pipeline.files')"
+      :count="pipeline.changed_files?.length"
+    />
+    <Tab
+      v-if="pipeline.errors && pipeline.errors.length > 0"
+      id="errors"
+      icon="attention"
+      :title="pipeline.errors.some((e) => !e.is_warning) ? $t('repo.pipeline.errors') : $t('repo.pipeline.warnings')"
+      :count="pipeline.errors?.length"
+      :icon-class="pipeline.errors.some((e) => !e.is_warning) ? 'text-wp-state-error-100' : 'text-wp-state-warn-100'"
     />
 
     <router-view />
@@ -117,6 +113,8 @@ import usePipeline from '~/compositions/usePipeline';
 import { useRouteBack } from '~/compositions/useRouteBack';
 import type { PipelineConfig, Repo, RepoPermissions } from '~/lib/api/types';
 import { usePipelineStore } from '~/store/pipelines';
+import PipelineAvatar from '~/components/repo/pipeline/PipelineAvatar.vue';
+import PipelineEventIcon from '~/components/repo/pipeline/PipelineEventIcon.vue';
 
 const props = defineProps<{
   repoId: string;

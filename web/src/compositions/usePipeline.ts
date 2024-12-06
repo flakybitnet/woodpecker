@@ -1,5 +1,4 @@
 import { computed, type Ref } from 'vue';
-import { useI18n } from 'vue-i18n';
 
 import { useDate } from '~/compositions/useDate';
 import { useElapsedTime } from '~/compositions/useElapsedTime';
@@ -24,20 +23,16 @@ export default (pipeline: Ref<Pipeline | undefined>) => {
   );
   const { time: sinceElapsed } = useElapsedTime(sinceUnderOneHour, sinceRaw);
 
-  const i18n = useI18n();
   const since = computed(() => {
-    if (sinceRaw.value === 0) {
-      // return i18n.t('time.not_started');
-      return '-';
-    }
-
-    if (sinceElapsed.value === undefined) {
-      return null;
+    if (sinceRaw.value === 0 || sinceElapsed.value === undefined) {
+      return '—';
     }
 
     // TODO: check whether elapsed works
     return timeAgo(sinceElapsed.value);
   });
+
+  const running = computed(() => pipeline.value !== undefined && pipeline.value.status === 'running');
 
   const durationRaw = computed(() => {
     if (!pipeline.value) {
@@ -51,24 +46,19 @@ export default (pipeline: Ref<Pipeline | undefined>) => {
       return 0;
     }
 
-    // only calculate time based no now() for running pipelines
-    if (pipeline.value.status === 'running') {
-      return Date.now() - start * 1000;
+    let duration = end - start;
+    if (running.value) {
+      duration = Date.now() - start; // only calculate time based no now() for running pipelines
     }
 
-    return (end - start) * 1000;
+    return duration * 1000;
   });
 
-  const running = computed(() => pipeline.value !== undefined && pipeline.value.status === 'running');
   const { time: durationElapsed } = useElapsedTime(running, durationRaw);
 
   const duration = computed(() => {
-    if (durationElapsed.value === undefined) {
-      return null;
-    }
-
-    if (durationRaw.value === 0) {
-      return i18n.t('time.not_started');
+    if (durationRaw.value === 0 || durationElapsed.value === undefined) {
+      return '—';
     }
 
     return prettyDuration(durationElapsed.value);
@@ -81,27 +71,11 @@ export default (pipeline: Ref<Pipeline | undefined>) => {
   const prTitle = computed(() => prTitleWithDescription.value.split('\n')[0]);
 
   const prettyRef = computed(() => {
-    if (pipeline.value?.event === 'push' || pipeline.value?.event === 'deployment') {
-      return pipeline.value.branch;
-    }
-
-    if (pipeline.value?.event === 'cron') {
-      return pipeline.value.ref.replaceAll('refs/heads/', '');
-    }
-
-    if (pipeline.value?.event === 'tag') {
+    if (pipeline.value?.event === 'tag' || pipeline.value?.event === 'release') {
       return pipeline.value.ref.replaceAll('refs/tags/', '');
     }
 
-    if (pipeline.value?.event === 'pull_request' || pipeline.value?.event === 'pull_request_closed') {
-      return `#${pipeline.value.ref
-        .replaceAll('refs/pull/', '')
-        .replaceAll('refs/merge-requests/', '')
-        .replaceAll('/merge', '')
-        .replaceAll('/head', '')}`;
-    }
-
-    return pipeline.value?.ref;
+    return pipeline.value?.branch;
   });
 
   const created = computed(() => {

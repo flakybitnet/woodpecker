@@ -3,51 +3,18 @@
     <div
       class="flex flex-wrap p-4 gap-1 justify-between flex-shrink-0 rounded-md border bg-wp-background-100 border-wp-background-400 dark:bg-wp-background-200"
     >
-      <div class="flex space-x-1 items-center flex-shrink-0">
-        <div class="flex items-center">
-          <Icon v-if="pipeline.event === 'cron'" name="pp-details-cron-user" />
-          <img v-else class="rounded-md w-6" :src="pipeline.author_avatar" />
+      <a class="flex items-center gap-x-4 text-wp-link-100 hover:text-wp-link-200 min-w-0" :href="pipeline.forge_url">
+        <PipelineStatusIcon :status="pipeline.status" class="flex flex-shrink-0" size="22" />
+        <div class="flex space-x-2 items-center min-w-0" :title="`${(pipeline.event === 'tag' || pipeline.event === 'release') ? 'Tag' : 'Branch'}: ${prettyRef}`">
+          <Icon v-if="pipeline.event === 'tag' || pipeline.event === 'release'" name="tag" class="flex-shrink-0" />
+          <Icon v-else name="branch" class="flex-shrink-0" />
+          <span class="truncate">{{ prettyRef }}</span>
         </div>
-        <span>{{ pipeline.author }}</span>
-      </div>
-      <a
-        v-if="pipeline.event === 'pull_request' || pipeline.event === 'pull_request_closed'"
-        class="flex items-center space-x-1 text-wp-link-100 hover:text-wp-link-200 min-w-0"
-        :href="pipeline.forge_url"
-      >
-        <Icon name="pull-request" />
-        <span class="truncate">{{ prettyRef }}</span>
+        <div class="flex space-x-2 items-center min-w-0" :title="`Head commit: ${pipeline.commit}`">
+          <Icon name="commit" class="flex-shrink-0" />
+          <span class="truncate">{{ pipeline.commit.slice(0, 4).concat(' ', pipeline.commit.slice(4, 8)) }}</span>
+        </div>
       </a>
-      <router-link
-        v-else-if="pipeline.event === 'push' || pipeline.event === 'manual' || pipeline.event === 'deployment'"
-        class="flex items-center space-x-1 text-wp-link-100 hover:text-wp-link-200 min-w-0"
-        :to="{ name: 'repo-branch', params: { branch: prettyRef } }"
-      >
-        <Icon v-if="pipeline.event === 'manual'" name="manual-pipeline" />
-        <Icon v-else-if="pipeline.event === 'push'" name="push" />
-        <Icon v-else-if="pipeline.event === 'deployment'" name="deployment" />
-        <span class="truncate">{{ prettyRef }}</span>
-      </router-link>
-      <div v-else class="flex space-x-1 items-center min-w-0">
-        <Icon v-if="pipeline.event === 'tag' || pipeline.event === 'release'" name="tag" />
-
-        <span class="truncate">{{ prettyRef }}</span>
-      </div>
-      <div class="flex items-center flex-shrink-0">
-        <template v-if="pipeline.event === 'pull_request'">
-          <Icon name="commit" />
-          <span>{{ pipeline.commit.slice(0, 10) }}</span>
-        </template>
-        <a
-          v-else
-          class="text-wp-link-100 hover:text-wp-link-200 flex items-center"
-          :href="pipeline.forge_url"
-          target="_blank"
-        >
-          <Icon name="commit" />
-          <span>{{ pipeline.commit.slice(0, 10) }}</span>
-        </a>
-      </div>
     </div>
 
     <Panel v-if="pipeline.workflows === undefined || pipeline.workflows.length === 0">
@@ -128,6 +95,8 @@ import PipelineStatusIcon from '~/components/repo/pipeline/PipelineStatusIcon.vu
 import PipelineStepDuration from '~/components/repo/pipeline/PipelineStepDuration.vue';
 import usePipeline from '~/compositions/usePipeline';
 import { StepType, type Pipeline, type PipelineConfig, type PipelineStep } from '~/lib/api/types';
+import PipelineAvatar from '~/components/repo/pipeline/PipelineAvatar.vue';
+import PipelineEventIcon from '~/components/repo/pipeline/PipelineEventIcon.vue';
 
 const props = defineProps<{
   pipeline: Pipeline;

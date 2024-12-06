@@ -38,7 +38,7 @@ const { time: durationElapsed } = useElapsedTime(running, durationRaw);
 
 const duration = computed(() => {
   if (durationElapsed.value === undefined) {
-    return '-';
+    return '—';
   }
 
   return durationAsNumber(durationElapsed.value || 0);

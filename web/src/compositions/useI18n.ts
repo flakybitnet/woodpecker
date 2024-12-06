@@ -5,7 +5,7 @@ import { getUserLanguage } from '~/utils/locale';
 
 import { useDate } from './useDate';
 
-const { setDayjsLocale } = useDate();
+const { setDateLocale } = useDate();
 const userLanguage = getUserLanguage();
 const fallbackLocale = 'en';
 export const i18n = createI18n({
@@ -28,9 +28,9 @@ export const setI18nLanguage = async (lang: string): Promise<void> => {
     await loadLocaleMessages(lang);
   }
   i18n.global.locale.value = lang;
-  await setDayjsLocale(lang);
+  await setDateLocale(lang);
 };
 
 loadLocaleMessages(fallbackLocale).catch(console.error);
 loadLocaleMessages(userLanguage).catch(console.error);
-setDayjsLocale(userLanguage).catch(console.error);
+setDateLocale(userLanguage).catch(console.error);
