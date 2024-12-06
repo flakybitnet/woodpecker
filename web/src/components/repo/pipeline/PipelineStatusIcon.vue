@@ -13,6 +13,7 @@
         'text-wp-state-warn-100': pipelineStatusColors[status] === 'orange',
         'animate-spin': service && pipelineStatusColors[status] === 'blue',
       }"
+      :size="size || defaultSize"
     />
   </div>
 </template>
@@ -28,8 +29,10 @@ import { pipelineStatusColors } from './pipeline-status';
 defineProps<{
   status: PipelineStatus;
   service?: boolean;
+  size?: number | string;
 }>();
 
+const defaultSize = 24;
 const { t } = useI18n();
 
 const statusDescriptions = {

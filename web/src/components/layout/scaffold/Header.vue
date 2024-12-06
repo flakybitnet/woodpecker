@@ -30,6 +30,9 @@
           :model-value="search"
           @update:model-value="(value: string) => $emit('update:search', value)"
         />
+        <div v-else-if="$slots.titleMiddle" class="w-auto <md:w-full <md:order-3" >
+          <slot name="titleMiddle" />
+        </div>
         <div
           v-if="$slots.titleActions"
           class="flex items-center md:justify-end gap-x-2 min-w-0"
