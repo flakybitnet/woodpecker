@@ -27,33 +27,38 @@
       </div>
     </template>
 
-    <template v-if="repoPermissions!.push && pipeline.status !== 'declined' && pipeline.status !== 'blocked'" #titleActions>
-      <div class="flex content-start gap-x-2">
-        <Button
-          v-if="pipeline.status === 'pending' || pipeline.status === 'running'"
-          class="flex-shrink-0"
-          :text="$t('repo.pipeline.actions.cancel')"
-          :is-loading="isCancelingPipeline"
-          @click="cancelPipeline"
-        />
-        <Button
-          class="flex-shrink-0"
-          :text="$t('repo.pipeline.actions.restart')"
-          :is-loading="isRestartingPipeline"
-          @click="restartPipeline"
-        />
-        <Button
-          v-if="pipeline.status === 'success' && repo.allow_deploy"
-          class="flex-shrink-0"
-          :text="$t('repo.pipeline.actions.deploy')"
-          @click="showDeployPipelinePopup = true"
-        />
-        <DeployPipelinePopup
-          :pipeline-number="pipelineId"
-          :open="showDeployPipelinePopup"
-          @close="showDeployPipelinePopup = false"
-        />
-      </div>
+    <template #titleActions>
+      <span /> <!-- durations block (tabActions slot) depends on this one (titleActions), see Header.vue:50 -->
+      <!-- so, if guest browses public repo, he won't see not only pipeline actions (restart, etc.), but also durations and user avatar -->
+
+      <template v-if="repoPermissions!.push && pipeline.status !== 'declined' && pipeline.status !== 'blocked'">
+        <div class="flex content-start gap-x-2">
+          <Button
+            v-if="pipeline.status === 'pending' || pipeline.status === 'running'"
+            class="flex-shrink-0"
+            :text="$t('repo.pipeline.actions.cancel')"
+            :is-loading="isCancelingPipeline"
+            @click="cancelPipeline"
+          />
+          <Button
+            class="flex-shrink-0"
+            :text="$t('repo.pipeline.actions.restart')"
+            :is-loading="isRestartingPipeline"
+            @click="restartPipeline"
+          />
+          <Button
+            v-if="pipeline.status === 'success' && repo.allow_deploy"
+            class="flex-shrink-0"
+            :text="$t('repo.pipeline.actions.deploy')"
+            @click="showDeployPipelinePopup = true"
+          />
+          <DeployPipelinePopup
+            :pipeline-number="pipelineId"
+            :open="showDeployPipelinePopup"
+            @close="showDeployPipelinePopup = false"
+          />
+        </div>
+      </template>
     </template>
 
     <template #tabActions>
@@ -104,7 +109,6 @@ import Icon from '~/components/atomic/Icon.vue';
 import DeployPipelinePopup from '~/components/layout/popups/DeployPipelinePopup.vue';
 import Scaffold from '~/components/layout/scaffold/Scaffold.vue';
 import Tab from '~/components/layout/scaffold/Tab.vue';
-import PipelineStatusIcon from '~/components/repo/pipeline/PipelineStatusIcon.vue';
 import useApiClient from '~/compositions/useApiClient';
 import { useAsyncAction } from '~/compositions/useAsyncAction';
 import { useFavicon } from '~/compositions/useFavicon';

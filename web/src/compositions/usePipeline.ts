@@ -46,12 +46,12 @@ export default (pipeline: Ref<Pipeline | undefined>) => {
       return 0;
     }
 
-    let duration = end - start;
+    let duration = end - start; // in seconds since 1970
     if (running.value) {
-      duration = Date.now() - start; // only calculate time based no now() for running pipelines
+      duration = Date.now() / 1000 - start; // only calculate time based no now() for running pipelines
     }
 
-    return duration * 1000;
+    return duration * 1000; // in milliseconds
   });
 
   const { time: durationElapsed } = useElapsedTime(running, durationRaw);
