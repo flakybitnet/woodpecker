@@ -13,14 +13,9 @@
         {{ repo?.owner }} / {{ repo?.name }}
       </router-link>
       <span class="whitespace-nowrap overflow-hidden overflow-ellipsis" :title="message">{{ shortMessage }}</span>
-      <div class="flex flex-col mt-2">
+      <div class="flex flex-col">
         <div class="flex space-x-2 items-center" :title="created">
-          <Icon name="since" />
           <span>{{ since }}</span>
-        </div>
-        <div class="flex space-x-2 items-center">
-          <Icon name="duration" />
-          <span>{{ duration }}</span>
         </div>
       </div>
     </div>
