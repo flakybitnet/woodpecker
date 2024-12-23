@@ -141,6 +141,7 @@ The task runs once at the Agent startup.
 
 ## License
 
-Woodpecker is Apache 2.0 licensed with the source files in this repository having a header indicating which license they are under and what copyrights apply.
+Woodpecker is distributed under [GNU Affero General Public License v3.0](LICENSE)
+with the source files in this repository having a header indicating which license they are under and what copyrights apply.
 
 Files under the `docs/` folder are licensed under Creative Commons Attribution-ShareAlike 4.0 International Public License.
