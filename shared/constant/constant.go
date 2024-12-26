@@ -20,6 +20,7 @@ var DefaultConfigOrder = [...]string{
 	".woodpecker/",
 	".woodpecker.yaml",
 	".woodpecker.yml",
+	".woodpecker.jsonnet",
 }
 
 const (
