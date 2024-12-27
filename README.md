@@ -10,6 +10,8 @@ This is a fork of [Woodpecker CI](https://github.com/woodpecker-ci/woodpecker) w
 2. It supports running the workload in Kubernetes [restricted](https://kubernetes.io/docs/concepts/security/pod-security-standards) environment.
 3. It supports secrets encryption.
 4. It maintains self-cleanup tasks.
+5. [Jsonnet](https://jsonnet.org/) support.
+6. Other improvements.
 
 ## Release cadence
 
@@ -138,6 +140,38 @@ WOODPECKER_BACKEND_K8S_MAINTENANCE_CLEANUP_RESOURCES_OLDER_THAN=12h
 will delete Kubernetes resources in the Agent's namespace created more than 12 hours ago.
 
 The task runs once at the Agent startup.
+
+### Jsonnet support
+
+Based on upstream [Add Jsonnet support](https://github.com/woodpecker-ci/woodpecker/pull/1396).
+
+[Jsonnet](https://jsonnet.org/) is a configuration language for app and tool developers.
+
+You can now develop the pipelines using Jsonnet, for example
+```jsonnet
+{
+  skip_clone: true,
+  steps: {
+    one: {
+      image: 'alpine',
+      commands: [
+        std.join(' ', ['echo', 'Hello from', 'Jsonnet pipeline']),
+        std.join(' ', ['echo', 'Hello from', self.image]),
+      ],
+    },
+    two: {
+      local ppStepNames = std.objectFields($.steps),
+      image: 'alpine',
+      commands: [
+        'echo The number of steps is %d' % std.length(ppStepNames),
+        'echo and they are: %(steps)s' % { steps: std.join(', ', ppStepNames) },
+      ],
+    },
+  },
+}
+```
+
+Upstream issue: [Support for Jsonnet](https://github.com/woodpecker-ci/woodpecker/discussions/3277)
 
 ## License
 

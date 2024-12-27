@@ -1,16 +1,32 @@
-// Copyright 2022 Woodpecker Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+This file is part of Woodpecker CI.
+Copyright (c) 2024 Woodpecker Authors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+This file incorporates work covered by the following copyright and permission notice:
+	Copyright (c) 2022 Woodpecker Authors
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
 
 package pipeline
 
@@ -78,7 +94,7 @@ func Create(ctx context.Context, _store store.Store, repo *model.Repo, pipeline 
 
 	// fetch the pipeline file from the forge
 	configService := server.Config.Services.Manager.ConfigServiceFromRepo(repo)
-	forgeYamlConfigs, configFetchErr := configService.Fetch(ctx, _forge, repoUser, repo, pipeline, nil, false)
+	forgeConfigs, configFetchErr := configService.Fetch(ctx, _forge, repoUser, repo, pipeline, nil, false)
 	if errors.Is(configFetchErr, &forge_types.ErrConfigNotFound{}) {
 		log.Debug().Str("repo", repo.FullName).Err(configFetchErr).Msgf("cannot find config '%s' in '%s' with user: '%s'", repo.Config, pipeline.Ref, repoUser.Login)
 		if err := _store.DeletePipeline(pipeline); err != nil {
@@ -91,7 +107,7 @@ func Create(ctx context.Context, _store store.Store, repo *model.Repo, pipeline 
 		return nil, updatePipelineWithErr(ctx, _forge, _store, pipeline, repo, repoUser, fmt.Errorf("pipeline definition not found in %s", repo.FullName))
 	}
 
-	pipelineItems, parseErr := parsePipeline(_forge, _store, pipeline, repoUser, repo, forgeYamlConfigs, nil)
+	pipelineItems, parseErr := parsePipeline(_forge, _store, pipeline, repoUser, repo, forgeConfigs, nil)
 	if pipeline_errors.HasBlockingErrors(parseErr) {
 		log.Debug().Str("repo", repo.FullName).Err(parseErr).Msg("failed to parse yaml")
 		return pipeline, updatePipelineWithErr(ctx, _forge, _store, pipeline, repo, repoUser, parseErr)
@@ -112,7 +128,7 @@ func Create(ctx context.Context, _store store.Store, repo *model.Repo, pipeline 
 
 	// persist the pipeline config for historical correctness, restarts, etc
 	var configs []*model.Config
-	for _, forgeYamlConfig := range forgeYamlConfigs {
+	for _, forgeYamlConfig := range forgeConfigs {
 		config, err := findOrPersistPipelineConfig(_store, pipeline, forgeYamlConfig)
 		if err != nil {
 			msg := fmt.Sprintf("failed to find or persist pipeline config for %s", repo.FullName)

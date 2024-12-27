@@ -1,22 +1,39 @@
-// Copyright 2022 Woodpecker Authors
-// Copyright 2018 Drone.IO Inc.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+This file is part of Woodpecker CI.
+Copyright (c) 2024 Woodpecker Authors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+This file incorporates work covered by the following copyright and permission notice:
+	Copyright (c) 2022 Woodpecker Authors
+	Copyright (c) 2018 Drone.IO Inc.
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
 
 package stepbuilder
 
 import (
 	"fmt"
+	"go.woodpecker-ci.org/woodpecker/v2/shared/constant"
 	"path/filepath"
 	"strings"
 
@@ -47,7 +64,7 @@ type StepBuilder struct {
 	Secs      []*model.Secret
 	Regs      []*model.Registry
 	Host      string
-	Yamls     []*forge_types.FileMeta
+	Configs   []*forge_types.FileMeta // YAML or JSON
 	Envs      map[string]string
 	Forge     metadata.ServerForge
 	ProxyOpts compiler.ProxyOptions
@@ -62,13 +79,13 @@ type Item struct {
 }
 
 func (b *StepBuilder) Build() (items []*Item, errorsAndWarnings error) {
-	b.Yamls = forge_types.SortByName(b.Yamls)
+	b.Configs = forge_types.SortByName(b.Configs)
 
 	pidSequence := 1
 
-	for _, y := range b.Yamls {
+	for _, config := range b.Configs {
 		// matrix axes
-		axes, err := matrix.ParseString(string(y.Data))
+		axes, err := matrix.ParseString(string(config.Data))
 		if err != nil {
 			return nil, err
 		}
@@ -81,12 +98,12 @@ func (b *StepBuilder) Build() (items []*Item, errorsAndWarnings error) {
 				PID:     pidSequence,
 				State:   model.StatusPending,
 				Environ: axis,
-				Name:    SanitizePath(y.Name),
+				Name:    SanitizePath(config.Name),
 			}
 			if len(axes) > 1 {
 				workflow.AxisID = i + 1
 			}
-			item, err := b.genItemForWorkflow(workflow, axis, string(y.Data))
+			item, err := b.genItemForWorkflow(workflow, axis, string(config.Data))
 			if err != nil && pipeline_errors.HasBlockingErrors(err) {
 				return nil, err
 			} else if err != nil {
@@ -301,8 +318,9 @@ func (b *StepBuilder) toInternalRepresentation(parsed *yaml_types.Workflow, envi
 
 func SanitizePath(path string) string {
 	path = filepath.Base(path)
-	path = strings.TrimSuffix(path, ".yml")
-	path = strings.TrimSuffix(path, ".yaml")
 	path = strings.TrimPrefix(path, ".")
+	for _, ext := range constant.SupportedConfigExtensions {
+		path = strings.TrimSuffix(path, ext)
+	}
 	return path
 }
