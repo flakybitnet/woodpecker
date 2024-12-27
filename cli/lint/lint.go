@@ -1,25 +1,43 @@
-// Copyright 2023 Woodpecker Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+This file is part of Woodpecker CI.
+Copyright (c) 2024 Woodpecker Authors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+This file incorporates work covered by the following copyright and permission notice:
+	Copyright (c) 2023 Woodpecker Authors
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
 
 package lint
 
 import (
 	"context"
 	"fmt"
+	"go.woodpecker-ci.org/woodpecker/v2/shared/constant"
 	"os"
 	"path"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/urfave/cli/v3"
@@ -43,15 +61,15 @@ func lint(ctx context.Context, c *cli.Command) error {
 
 func lintDir(ctx context.Context, c *cli.Command, dir string) error {
 	var errorStrings []string
-	if err := filepath.Walk(dir, func(path string, info os.FileInfo, e error) error {
+	if err := filepath.Walk(dir, func(walkPath string, info os.FileInfo, e error) error {
 		if e != nil {
 			return e
 		}
 
 		// check if it is a regular file (not dir)
-		if info.Mode().IsRegular() && (strings.HasSuffix(info.Name(), ".yaml") || strings.HasSuffix(info.Name(), ".yml")) {
+		if info.Mode().IsRegular() && slices.Contains(constant.SupportedConfigExtensions, path.Ext(info.Name())) {
 			fmt.Println("#", info.Name())
-			if err := lintFile(ctx, c, path); err != nil {
+			if err := lintFile(ctx, c, walkPath); err != nil {
 				errorStrings = append(errorStrings, err.Error())
 			}
 			fmt.Println("")

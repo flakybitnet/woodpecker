@@ -1,16 +1,32 @@
-// Copyright 2022 Woodpecker Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+This file is part of Woodpecker CI.
+Copyright (c) 2024 Woodpecker Authors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+This file incorporates work covered by the following copyright and permission notice:
+	Copyright (c) 2022 Woodpecker Authors
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
 
 package config_test
 
@@ -38,7 +54,26 @@ func TestFetch(t *testing.T) {
 		data []byte
 	}
 
-	dummyData := []byte("TEST")
+	yamlPipeline := []byte(`
+	steps:
+		hello:
+			image: alpine
+			commands:
+			- echo Hello alpine!
+	`)
+	jsonnetPipeline := []byte(`std.manifestYamlDoc(
+		{
+			steps: {
+				hello: {
+					image: "alpine",
+					commands: [
+						std.join(" ", ["echo", "Hello", self.image, "!"]),
+					]
+				},
+			},
+		},
+    quote_keys=false
+	)`)
 
 	testTable := []struct {
 		name              string
@@ -52,13 +87,13 @@ func TestFetch(t *testing.T) {
 			repoConfig: "",
 			files: []file{{
 				name: ".woodpecker/text.txt",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/release.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/image.png",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker/release.yml",
@@ -70,13 +105,13 @@ func TestFetch(t *testing.T) {
 			repoConfig: "",
 			files: []file{{
 				name: ".woodpecker/text.txt",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/release.yaml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/image.png",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker/release.yaml",
@@ -88,20 +123,24 @@ func TestFetch(t *testing.T) {
 			repoConfig: "",
 			files: []file{{
 				name: ".woodpecker/text.txt",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/release.yaml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/other.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/image.png",
-				data: dummyData,
+				data: yamlPipeline,
+			}, {
+				name: ".woodpecker/notification.jsonnet",
+				data: jsonnetPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker/release.yaml",
 				".woodpecker/other.yml",
+				".woodpecker/notification.jsonnet",
 			},
 			expectedError: false,
 		},
@@ -110,10 +149,10 @@ func TestFetch(t *testing.T) {
 			repoConfig: "",
 			files: []file{{
 				name: ".woodpecker.yaml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker.yaml",
@@ -125,7 +164,7 @@ func TestFetch(t *testing.T) {
 			repoConfig: "",
 			files: []file{{
 				name: ".woodpecker.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker.yml",
@@ -137,7 +176,7 @@ func TestFetch(t *testing.T) {
 			repoConfig: "",
 			files: []file{{
 				name: ".woodpecker.yaml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker.yaml",
@@ -156,10 +195,10 @@ func TestFetch(t *testing.T) {
 			repoConfig: "",
 			files: []file{{
 				name: ".woodpecker/test.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/sub-folder/config.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker/test.yml",
@@ -171,13 +210,13 @@ func TestFetch(t *testing.T) {
 			repoConfig: "",
 			files: []file{{
 				name: ".woodpecker/notes.txt",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/image.png",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker/test.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker/test.yml",
@@ -189,13 +228,13 @@ func TestFetch(t *testing.T) {
 			repoConfig: " ",
 			files: []file{{
 				name: ".woodpecker/.keep",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker.yml",
 				data: nil,
 			}, {
 				name: ".woodpecker.yaml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".woodpecker.yaml",
@@ -207,16 +246,16 @@ func TestFetch(t *testing.T) {
 			repoConfig: ".my-ci-folder/",
 			files: []file{{
 				name: ".woodpecker/test.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".woodpecker.yaml",
-				data: dummyData,
+				data: yamlPipeline,
 			}, {
 				name: ".my-ci-folder/test.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".my-ci-folder/test.yml",
@@ -228,7 +267,7 @@ func TestFetch(t *testing.T) {
 			repoConfig: ".my-ci-folder/",
 			files: []file{{
 				name: ".my-ci-folder/test.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".my-ci-folder/test.yml",
@@ -240,7 +279,7 @@ func TestFetch(t *testing.T) {
 			repoConfig: ".my-ci-folder/my-config/",
 			files: []file{{
 				name: ".my-ci-folder/my-config/test.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".my-ci-folder/my-config/test.yml",
@@ -252,7 +291,7 @@ func TestFetch(t *testing.T) {
 			repoConfig: ".config.yml",
 			files: []file{{
 				name: ".config.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".config.yml",
@@ -264,7 +303,7 @@ func TestFetch(t *testing.T) {
 			repoConfig: ".my-ci-folder/sub-folder/config.yml",
 			files: []file{{
 				name: ".my-ci-folder/sub-folder/config.yml",
-				data: dummyData,
+				data: yamlPipeline,
 			}},
 			expectedFileNames: []string{
 				".my-ci-folder/sub-folder/config.yml",
@@ -285,6 +324,8 @@ func TestFetch(t *testing.T) {
 			repo := &model.Repo{Owner: "laszlocph", Name: "multipipeline", Config: tt.repoConfig}
 
 			f := new(mocks.Forge)
+			f.On("Name").Return("mockForge")
+
 			dirs := map[string][]*forge_types.FileMeta{}
 			for _, file := range tt.files {
 				f.On("File", mock.Anything, mock.Anything, mock.Anything, mock.Anything, file.name).Once().Return(file.data, nil)

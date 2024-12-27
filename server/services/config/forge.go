@@ -1,16 +1,32 @@
-// Copyright 2024 Woodpecker Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+This file is part of Woodpecker CI.
+Copyright (c) 2024 Woodpecker Authors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+This file incorporates work covered by the following copyright and permission notice:
+	Copyright (c) 2024 Woodpecker Authors
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
 
 package config
 
@@ -19,6 +35,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/sethvargo/go-retry"
+	"path"
+	"slices"
 	"strings"
 	"time"
 
@@ -81,113 +99,98 @@ func (f *forgeFetcherContext) fetch(c context.Context, config string) ([]*types.
 	ctx, cancel := context.WithTimeout(c, f.timeout)
 	defer cancel()
 
+	var err error
+	var configFiles []*types.FileMeta
 	if len(config) > 0 {
-		log.Trace().Msgf("configFetcher[%s]: use user config '%s'", f.repo.FullName, config)
+		log.Trace().Str("repository", f.repo.FullName).Str("config", config).Msg("use user config")
 
 		// could be adapted to allow the user to supply a list like we do in the defaults
 		configs := []string{config}
 
-		fileMetas, err := f.getFirstAvailableConfig(ctx, configs)
-		if err == nil {
-			return fileMetas, nil
+		configFiles, err = f.getFirstAvailableConfig(ctx, configs)
+		if err != nil {
+			return nil, fmt.Errorf("user defined config '%s' not found: %w", config, err)
 		}
 
-		return nil, fmt.Errorf("user defined config '%s' not found: %w", config, err)
-	}
-
-	log.Trace().Msgf("configFetcher[%s]: user did not define own config, following default procedure", f.repo.FullName)
-	// for the order see shared/constants/constants.go
-	fileMetas, err := f.getFirstAvailableConfig(ctx, constant.DefaultConfigOrder[:])
-	if err == nil {
-		return fileMetas, nil
-	}
-
-	select {
-	case <-ctx.Done():
-		return nil, ctx.Err()
-	default:
-		return nil, fmt.Errorf("configFetcher: fallback did not find config: %w", err)
-	}
-}
-
-func filterPipelineFiles(files []*types.FileMeta) []*types.FileMeta {
-	var res []*types.FileMeta
-
-	for _, file := range files {
-		if strings.HasSuffix(file.Name, ".yml") || strings.HasSuffix(file.Name, ".yaml") {
-			res = append(res, file)
-		} else if strings.HasSuffix(file.Name, ".jsonnet") {
-			jsonData, err := evaluateJsonnetFile(file)
-			if err == nil {
-				res = append(res, &forge.FileMeta{
-					Name: file.Name,
-					Data: jsonData,
-				})
-			} else {
-				log.Error().Err(err).Msgf("error evaluating jsonnet file %s", file.Name)
-			}
+	} else {
+		log.Trace().Str("repository", f.repo.FullName).Msg("user did not define own config, following default procedure")
+		// for the order see shared/constants/constants.go
+		configFiles, err = f.getFirstAvailableConfig(ctx, constant.DefaultConfigOrder[:])
+		if err != nil {
+			return nil, fmt.Errorf("fallback config not found: %w", err)
 		}
 	}
 
-	return res
-}
-
-func (f *forgeFetcherContext) checkPipelineFile(c context.Context, config string) ([]*types.FileMeta, error) {
-	file, err := f.forge.File(c, f.user, f.repo, f.pipeline, config)
-
-	if err == nil && len(file) != 0 {
-		log.Trace().Msgf("configFetcher[%s]: found file '%s'", f.repo.FullName, config)
-
-		if strings.HasSuffix(config, ".jsonnet") {
-			// Jsonnet file, must be evaluated first
-			file, err = evaluateJsonnetFile(&forge.FileMeta{
-				Name: config,
-				Data: file,
-			})
+	for _, configFile := range configFiles {
+		if path.Ext(configFile.Name) == ".jsonnet" {
+			jsonData, err := evaluateJsonnetFile(configFile)
 			if err != nil {
-				log.Error().Err(err).Msgf("error evaluating jsonnet file %s", config)
-				return nil, false
+				return nil, fmt.Errorf("error evaluating jsonnet file %s: %w", configFile.Name, err)
 			}
+			configFile.Data = jsonData
 		}
-
-		return []*types.FileMeta{{
-			Name: config,
-			Data: file,
-		}}, nil
 	}
 
-	return nil, err
+	return configFiles, nil
 }
 
-func (f *forgeFetcherContext) getFirstAvailableConfig(c context.Context, configs []string) ([]*types.FileMeta, error) {
+func (f *forgeFetcherContext) fetchConfigFile(ctx context.Context, config string) ([]*types.FileMeta, error) {
+	log.Trace().Str("file", config).Msg("fetching from forge")
+
+	file, err := f.forge.File(ctx, f.user, f.repo, f.pipeline, config)
+	if err != nil {
+		return nil, err
+	}
+
+	files := []*types.FileMeta{{
+		Name: config,
+		Data: file,
+	}}
+
+	return files, nil
+}
+
+func (f *forgeFetcherContext) fetchConfigDir(ctx context.Context, config string) ([]*types.FileMeta, error) {
+	log.Trace().Str("dir", config).Msg("fetching from forge")
+
+	files, err := f.forge.Dir(ctx, f.user, f.repo, f.pipeline, strings.TrimSuffix(config, "/"))
+	if errors.Is(err, types.ErrNotImplemented) {
+		log.Error().Err(err).Str("forge", f.forge.Name()).Str("repository", f.repo.FullName).
+			Str("config-dir", config).Msg("dir fetching is not implemented")
+	}
+
+	return files, err
+}
+
+func (f *forgeFetcherContext) getFirstAvailableConfig(ctx context.Context, configs []string) (configFiles []*types.FileMeta, err error) {
 	var forgeErr []error
-	for _, fileOrFolder := range configs {
-		log.Trace().Msgf("fetching %s from forge", fileOrFolder)
-		if strings.HasSuffix(fileOrFolder, "/") {
-			// config is a folder
-			log.Trace().Msgf("fetching %s from forge", fileOrFolder)
-			files, err := f.forge.Dir(c, f.user, f.repo, f.pipeline, strings.TrimSuffix(fileOrFolder, "/"))
-			// if folder is not supported we will get a "Not implemented" error and continue
+
+	for _, config := range configs {
+		var files []*types.FileMeta
+
+		if strings.HasSuffix(config, "/") { // config is a folder
+			files, err = f.fetchConfigDir(ctx, config)
 			if err != nil {
+				// if folder is not supported we will get a "Not implemented" error and continue
 				if !(errors.Is(err, types.ErrNotImplemented) || errors.Is(err, &types.ErrConfigNotFound{})) {
-					log.Error().Err(err).Str("repo", f.repo.FullName).Str("user", f.user.Login).Msgf("could not get folder from forge: %s", err)
 					forgeErr = append(forgeErr, err)
 				}
 				continue
 			}
-			files = filterPipelineFiles(files)
-			if len(files) != 0 {
-				log.Trace().Msgf("configFetcher[%s]: found %d files in '%s'", f.repo.FullName, len(files), fileOrFolder)
-				return files, nil
+
+		} else { // config is a file
+			files, err = f.fetchConfigFile(ctx, config)
+			if err != nil {
+				if !errors.Is(err, &types.ErrConfigNotFound{}) {
+					forgeErr = append(forgeErr, err)
+				}
+				continue
 			}
 		}
 
-		// config is a file
-		if fileMeta, err := f.checkPipelineFile(c, fileOrFolder); err == nil {
-			log.Trace().Msgf("configFetcher[%s]: found file: '%s'", f.repo.FullName, fileOrFolder)
-			return fileMeta, nil
-		} else if !errors.Is(err, &types.ErrConfigNotFound{}) {
-			forgeErr = append(forgeErr, err)
+		supportedConfigs := f.filterSupportedConfigs(files)
+		if len(supportedConfigs) > 0 {
+			return supportedConfigs, nil
 		}
 	}
 
@@ -200,7 +203,22 @@ func (f *forgeFetcherContext) getFirstAvailableConfig(c context.Context, configs
 	return nil, &types.ErrConfigNotFound{Configs: configs}
 }
 
-func evaluateJsonnetFile(file *forge.FileMeta) ([]byte, error) {
+func (f *forgeFetcherContext) filterSupportedConfigs(files []*types.FileMeta) (configFiles []*types.FileMeta) {
+	for _, file := range files {
+		if !slices.Contains(constant.SupportedConfigExtensions, path.Ext(file.Name)) {
+			log.Trace().Str("file", file.Name).Msg("skipped unsupported config format")
+			continue
+		}
+		if len(file.Data) == 0 {
+			log.Trace().Str("file", file.Name).Msg("skipped empty config file")
+			continue
+		}
+		configFiles = append(configFiles, file)
+	}
+	return
+}
+
+func evaluateJsonnetFile(file *types.FileMeta) ([]byte, error) {
 	vm := jsonnet.MakeVM()
 	jsonData, err := vm.EvaluateAnonymousSnippet(file.Name, string(file.Data))
 	return []byte(jsonData), err
