@@ -465,6 +465,7 @@
   "internal_error": "Some internal error occurred",
   "registration_closed": "The registration is closed",
   "access_denied": "You are not allowed to access this instance",
+  "org_access_denied": "You are not allowed to access this organization",
   "invalid_state": "The OAuth state is invalid",
   "require_approval": {
     "require_approval_for": "Require approval for",
