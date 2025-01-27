@@ -52,9 +52,7 @@
           ]"
         />
         <template #description>
-          <p class="text-sm">
-            {{ $t('require_approval.desc') }}
-          </p>
+          {{ $t('require_approval.desc') }}
         </template>
       </InputField>
 
@@ -87,10 +85,10 @@
             :placeholder="$t('repo.settings.general.pipeline_path.default')"
           />
         </template>
+
         <template #description>
-          <i18n-t keypath="repo.settings.general.pipeline_path.desc" tag="p" class="text-sm text-wp-text-alt-100">
+          <i18n-t keypath="repo.settings.general.pipeline_path.desc">
             <span class="code-box-inline">{{ $t('repo.settings.general.pipeline_path.desc_path_example') }}</span>
-            <!-- eslint-disable-next-line @intlify/vue-i18n/no-raw-text -->
             <span class="code-box-inline">/</span>
           </i18n-t>
         </template>
@@ -105,9 +103,7 @@
           :options="cancelPreviousPipelineEventsOptions"
         />
         <template #description>
-          <p class="text-sm">
-            {{ $t('repo.settings.general.cancel_prev.desc') }}
-          </p>
+          {{ $t('repo.settings.general.cancel_prev.desc') }}
         </template>
       </InputField>
 
