@@ -42,13 +42,17 @@ func needsApproval(repo *model.Repo, pipeline *model.Pipeline) bool {
 	}
 
 	// repository requires approval for pull requests from forks
-	if pipeline.Event == model.EventPull && pipeline.FromFork {
-		return true
+	if repo.RequireApproval == model.RequireApprovalForks {
+		if (pipeline.Event == model.EventPull || pipeline.Event == model.EventPullClosed) && pipeline.FromFork {
+			return true
+		}
 	}
 
 	// repository requires approval for pull requests
-	if pipeline.Event == model.EventPull && repo.RequireApproval == model.RequireApprovalPullRequests {
-		return true
+	if repo.RequireApproval == model.RequireApprovalPullRequests {
+		if pipeline.Event == model.EventPull || pipeline.Event == model.EventPullClosed {
+			return true
+		}
 	}
 
 	// repository requires approval for all events
