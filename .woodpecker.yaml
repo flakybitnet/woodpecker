@@ -5,10 +5,10 @@
 
 variables:
   - &debian_image 'public.ecr.aws/docker/library/debian:bookworm-slim'
-  - &golang_image 'public.ecr.aws/docker/library/golang:1.23.5-bookworm'
-  - &node_image 'public.ecr.aws/docker/library/node:22.13.0-bookworm-slim'
+  - &golang_image 'public.ecr.aws/docker/library/golang:1.23.7-bookworm'
+  - &node_image 'public.ecr.aws/docker/library/node:22.14.0-bookworm-slim'
   - &kaniko_image "gcr.io/kaniko-project/executor:v1.23.2-debug"
-  - &skopeo_image "public.ecr.aws/flakybitnet/skopeo:1.16.1-fb1"
+  - &skopeo_image "public.ecr.aws/flakybitnet/skopeo:1.18.0-fb1"
 
 matrix:
   APP_COMPONENT:

@@ -33,7 +33,7 @@
     "semver": "~7.6.3",
     "simple-icons": "~13.5.0",
     "vue": "~3.4.38",
-    "vue-i18n": "~10.0.5",
+    "vue-i18n": "~10.0.6",
     "vue-router": "~4.4.5"
   },
   "devDependencies": {
@@ -42,7 +42,7 @@
     "@ianvs/prettier-plugin-sort-imports": "~4.3.1",
     "@intlify/eslint-plugin-vue-i18n": "~3.0.0",
     "@types/eslint__js": "~8.42.3",
-    "@types/lodash": "~4.17.14",
+    "@types/lodash": "~4.17.16",
     "@types/node": "~20.14.15",
     "@types/prismjs": "~1.26.5",
     "@types/semver": "~7.5.8",
