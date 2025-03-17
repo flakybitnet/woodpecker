@@ -1,3 +1,4 @@
+// Copyright 2025 Woodpecker Authors
 // Copyright 2018 Drone.IO Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,8 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/cenkalti/backoff/v5"
+	"go.woodpecker-ci.org/woodpecker/v2/server/store"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -92,10 +95,19 @@ func run(ctx context.Context, c *cli.Command) error {
 		)
 	}
 
-	_store, err := setupStore(ctx, c)
+	_store, err := backoff.Retry(ctx,
+		func() (store.Store, error) {
+			return setupStore(ctx, c)
+		},
+		backoff.WithBackOff(backoff.NewExponentialBackOff()),
+		backoff.WithMaxTries(uint(c.Uint("db-max-retries"))),
+		backoff.WithNotify(func(err error, delay time.Duration) {
+			log.Error().Msgf("failed to setup store: %v: retry in %v", err, delay)
+		}))
 	if err != nil {
-		return fmt.Errorf("can't setup store: %w", err)
+		return err
 	}
+
 	defer func() {
 		if err := _store.Close(); err != nil {
 			log.Error().Err(err).Msg("could not close store")
