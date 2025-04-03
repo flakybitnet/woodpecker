@@ -1,0 +1,135 @@
+// Environments
+// RUN_COMPONENTS=server|agent|cli - execute workflow for components
+// RUN_PHASES=build-image|publish-quay|publish-ghcr|publish-ecr - execute workflow phases
+// CI_MANUAL_TAG=0.0.1 - application release version, gets priority over CI_COMMIT_TAG
+
+local image = {
+  debian: 'public.ecr.aws/docker/library/debian:bookworm-slim',
+  golang: 'public.ecr.aws/docker/library/golang:1.23.7-bookworm',
+  node: 'public.ecr.aws/docker/library/node:22.14.0-bookworm-slim',
+  kaniko: 'gcr.io/kaniko-project/executor:v1.23.2-debug',
+  skopeo: 'public.ecr.aws/flakybitnet/skopeo:1.18.0-fb1',
+};
+
+{
+  matrix: {
+    APP_COMPONENT: ['server', 'agent', 'cli'],
+  },
+
+  when: [
+    {
+      branch: 'main',
+      event: ['manual'],
+      evaluate: 'RUN_COMPONENTS == "" || APP_COMPONENT in split(RUN_COMPONENTS, ",")',
+    },
+    {
+      branch: { exclude: 'main' },
+      event: ['manual', 'push', 'tag'],
+      evaluate: 'RUN_COMPONENTS == "" || APP_COMPONENT in split(RUN_COMPONENTS, ",")',
+    },
+  ],
+
+  steps: {
+
+    // prepare
+
+    'set-env': {
+      image: image.debian,
+      commands: ['.ci/set-env.sh'],
+    },
+
+    // build
+
+    vendor: {
+      when: {
+        evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")',
+      },
+      image: image.golang,
+      commands: ['.ci/vendor.sh'],
+    },
+
+    'build-ui': {
+      when: {
+        evaluate: 'APP_COMPONENT == "server" && (RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ","))',
+      },
+      image: image.node,
+      commands: ['.ci/build-ui.sh'],
+    },
+
+    build: {
+      when: {
+        evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")',
+      },
+      image: image.golang,
+      commands: ['.ci/build.sh'],
+    },
+
+    // image
+
+    image: {
+      when: {
+        evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")',
+      },
+      image: image.kaniko,
+      environment: {
+        HARBOR_CREDS: { from_secret: 'fb_harbor_creds' },
+      },
+      commands: ['.ci/image.sh'],
+    },
+
+    'image-debug': {
+      when: {
+        evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")',
+      },
+      image: image.kaniko,
+      environment: {
+        IMAGE_DEBUG: true,
+        HARBOR_CREDS: { from_secret: 'fb_harbor_creds' },
+      },
+      commands: ['.ci/image.sh'],
+    },
+
+    // publish external
+
+    'publish-quay': {
+      when: {
+        evaluate: '(RUN_PHASES == "" || "publish-quay" in split(RUN_PHASES, ",")) && (CI_COMMIT_TAG != "" || CI_MANUAL_TAG != "")',
+      },
+      failure: 'ignore',
+      image: image.skopeo,
+      environment: {
+        DEST_REGISTRY: 'quay.io',
+        DEST_CREDS: { from_secret: 'fb_quay_creds' },
+      },
+      commands: ['.ci/publish-external.sh'],
+    },
+
+    'publish-ghcr': {
+      when: {
+        evaluate: '(RUN_PHASES == "" || "publish-ghcr" in split(RUN_PHASES, ",")) && (CI_COMMIT_TAG != "" || CI_MANUAL_TAG != "")',
+      },
+      failure: 'ignore',
+      image: image.skopeo,
+      environment: {
+        DEST_REGISTRY: 'ghcr.io',
+        DEST_CREDS: { from_secret: 'fb_ghcr_creds' },
+      },
+      commands: ['.ci/publish-external.sh'],
+    },
+
+    'publish-ecr': {
+      when: {
+        evaluate: '(RUN_PHASES == "" || "publish-ecr" in split(RUN_PHASES, ",")) && (CI_COMMIT_TAG != "" || CI_MANUAL_TAG != "")',
+      },
+      failure: 'ignore',
+      environment: {
+        DEST_REGISTRY: 'public.ecr.aws',
+        AWS_ACCESS_KEY_ID: { from_secret: 'fb_ecr_key_id' },
+        AWS_SECRET_ACCESS_KEY: { from_secret: 'fb_ecr_key' },
+      },
+      image: image.skopeo,
+      commands: ['.ci/publish-external.sh'],
+    },
+
+  },
+}
