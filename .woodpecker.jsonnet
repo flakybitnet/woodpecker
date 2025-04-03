@@ -29,18 +29,20 @@ local image = {
     },
   ],
 
-  steps: {
+  steps: [
 
     // prepare
 
-    'set-env': {
+    {
+      name: 'set-env',
       image: image.debian,
       commands: ['.ci/set-env.sh'],
     },
 
     // build
 
-    vendor: {
+    {
+      name: 'vendor',
       when: {
         evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")',
       },
@@ -48,7 +50,8 @@ local image = {
       commands: ['.ci/vendor.sh'],
     },
 
-    'build-ui': {
+    {
+      name: 'build-ui',
       when: {
         evaluate: 'APP_COMPONENT == "server" && (RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ","))',
       },
@@ -56,7 +59,8 @@ local image = {
       commands: ['.ci/build-ui.sh'],
     },
 
-    build: {
+    {
+      name: 'build',
       when: {
         evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")',
       },
@@ -66,7 +70,8 @@ local image = {
 
     // image
 
-    image: {
+    {
+      name: 'image',
       when: {
         evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")',
       },
@@ -77,7 +82,8 @@ local image = {
       commands: ['.ci/image.sh'],
     },
 
-    'image-debug': {
+    {
+      name: 'image-debug',
       when: {
         evaluate: 'RUN_PHASES == "" || "build-image" in split(RUN_PHASES, ",")',
       },
@@ -91,7 +97,8 @@ local image = {
 
     // publish external
 
-    'publish-quay': {
+    {
+      name: 'publish-quay',
       when: {
         evaluate: '(RUN_PHASES == "" || "publish-quay" in split(RUN_PHASES, ",")) && (CI_COMMIT_TAG != "" || CI_MANUAL_TAG != "")',
       },
@@ -104,7 +111,8 @@ local image = {
       commands: ['.ci/publish-external.sh'],
     },
 
-    'publish-ghcr': {
+    {
+      name: 'publish-ghcr',
       when: {
         evaluate: '(RUN_PHASES == "" || "publish-ghcr" in split(RUN_PHASES, ",")) && (CI_COMMIT_TAG != "" || CI_MANUAL_TAG != "")',
       },
@@ -117,7 +125,8 @@ local image = {
       commands: ['.ci/publish-external.sh'],
     },
 
-    'publish-ecr': {
+    {
+      name: 'publish-ecr',
       when: {
         evaluate: '(RUN_PHASES == "" || "publish-ecr" in split(RUN_PHASES, ",")) && (CI_COMMIT_TAG != "" || CI_MANUAL_TAG != "")',
       },
@@ -131,5 +140,5 @@ local image = {
       commands: ['.ci/publish-external.sh'],
     },
 
-  },
+  ],
 }
