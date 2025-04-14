@@ -34,6 +34,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"github.com/google/go-jsonnet"
+	"path"
 
 	"github.com/rs/zerolog/log"
 
@@ -87,6 +90,11 @@ func parsePipeline(forge forge.Forge, store store.Store, currentPipeline *model.
 		envs[k] = v
 	}
 
+	err = evaluateJsonnet(configs, envs)
+	if err != nil {
+		return nil, err
+	}
+
 	b := stepbuilder.StepBuilder{
 		Repo:    repo,
 		Curr:    currentPipeline,
@@ -105,6 +113,31 @@ func parsePipeline(forge forge.Forge, store store.Store, currentPipeline *model.
 		},
 	}
 	return b.Build()
+}
+
+func evaluateJsonnet(configs []*forge_types.FileMeta, envs map[string]string) error {
+	for _, config := range configs {
+		if path.Ext(config.Name) == ".jsonnet" {
+
+			ast, err := jsonnet.SnippetToAST(config.Name, string(config.Data))
+			if err != nil {
+				return fmt.Errorf("failed to parse jsonnet config %s: %w", config.Name, err)
+			}
+
+			vm := jsonnet.MakeVM()
+			for k, v := range envs {
+				vm.ExtVar(k, v)
+			}
+
+			json, err := vm.Evaluate(ast)
+			if err != nil {
+				return fmt.Errorf("failed to evaluate jsonnet config %s: %w", config.Name, err)
+			}
+			config.Data = []byte(json)
+		}
+	}
+
+	return nil
 }
 
 func createPipelineItems(c context.Context, forge forge.Forge, store store.Store,

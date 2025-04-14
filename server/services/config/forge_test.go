@@ -61,7 +61,7 @@ func TestFetch(t *testing.T) {
 			commands:
 			- echo Hello alpine!
 	`)
-	jsonnetPipeline := []byte(`std.manifestYamlDoc(
+	jsonnetPipeline := []byte(`
 		{
 			steps: {
 				hello: {
@@ -71,8 +71,7 @@ func TestFetch(t *testing.T) {
 					]
 				},
 			},
-		},
-    quote_keys=false
+		}
 	)`)
 
 	testTable := []struct {
