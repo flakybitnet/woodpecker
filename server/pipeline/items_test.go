@@ -55,13 +55,14 @@ func TestSetPipelineStepsOnPipeline(t *testing.T) {
 
 func TestJsonnet(t *testing.T) {
 	jsonnetPipeline := []byte(`
+		local env = import 'env.jsonnet';
 		{
 			steps: {
 				hello: {
 					image: "alpine",
 					commands: [
 						std.join(" ", ["echo", "Hello", self.image, "!"]),
-						'echo The repo name is %s and event is %s' % [ std.extVar('CI_REPO_NAME'), std.extVar('CI_PIPELINE_EVENT') ],
+						'echo Env vars are %s' % std.join(', ', std.objectFields(env)),
 					]
 				},
 			},
@@ -81,5 +82,17 @@ func TestJsonnet(t *testing.T) {
 	err := evaluateJsonnet(configs, envs)
 	assert.NoError(t, err)
 
-	t.Log(string(config.Data))
+	expected := `{
+   "steps": {
+      "hello": {
+         "commands": [
+            "echo Hello alpine !",
+            "echo Env vars are CI_PIPELINE_EVENT, CI_REPO_NAME"
+         ],
+         "image": "alpine"
+      }
+   }
+}
+`
+	assert.Equal(t, expected, string(config.Data))
 }

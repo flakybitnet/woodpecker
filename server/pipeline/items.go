@@ -33,6 +33,7 @@ package pipeline
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/google/go-jsonnet"
@@ -119,18 +120,26 @@ func evaluateJsonnet(configs []*forge_types.FileMeta, envs map[string]string) er
 	for _, config := range configs {
 		if path.Ext(config.Name) == ".jsonnet" {
 
-			ast, err := jsonnet.SnippetToAST(config.Name, string(config.Data))
+			configAst, err := jsonnet.SnippetToAST(config.Name, string(config.Data))
 			if err != nil {
 				return fmt.Errorf("failed to parse jsonnet config %s: %w", config.Name, err)
 			}
 
 			vm := jsonnet.MakeVM()
-			for k, v := range envs {
-				vm.ExtVar(k, v)
-			}
-			log.Trace().Interface("envs", envs).Msg("injected jsonnet external variables")
 
-			json, err := vm.Evaluate(ast)
+			envJson, err := json.Marshal(envs)
+			if err != nil {
+				return fmt.Errorf("failed to marshal environment variables: %w", err)
+			}
+
+			importer := jsonnet.MemoryImporter{
+				map[string]jsonnet.Contents{
+					"env.jsonnet": jsonnet.MakeContents(string(envJson)),
+				},
+			}
+			vm.Importer(&importer)
+
+			json, err := vm.Evaluate(configAst)
 			if err != nil {
 				return fmt.Errorf("failed to evaluate jsonnet config %s: %w", config.Name, err)
 			}
