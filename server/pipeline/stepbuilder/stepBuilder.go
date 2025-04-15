@@ -1,6 +1,6 @@
 /*
 This file is part of Woodpecker CI.
-Copyright (c) 2024 Woodpecker Authors
+Copyright (c) 2025 Woodpecker Authors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -32,8 +32,11 @@ This file incorporates work covered by the following copyright and permission no
 package stepbuilder
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/google/go-jsonnet"
 	"go.woodpecker-ci.org/woodpecker/v2/shared/constant"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -81,6 +84,13 @@ type Item struct {
 func (b *StepBuilder) Build() (items []*Item, errorsAndWarnings error) {
 	b.Configs = forge_types.SortByName(b.Configs)
 
+	meta := MetadataFromStruct(b.Forge, b.Repo, b.Curr, b.Last, b.Host)
+	environ := meta.Environ()
+	err := b.evaluateJsonnet(environ)
+	if err != nil {
+		return nil, err
+	}
+
 	pidSequence := 1
 
 	for _, config := range b.Configs {
@@ -103,7 +113,7 @@ func (b *StepBuilder) Build() (items []*Item, errorsAndWarnings error) {
 			if len(axes) > 1 {
 				workflow.AxisID = i + 1
 			}
-			item, err := b.genItemForWorkflow(workflow, axis, string(config.Data))
+			item, err := b.genItemForWorkflow(meta, workflow, axis, string(config.Data))
 			if err != nil && pipeline_errors.HasBlockingErrors(err) {
 				return nil, err
 			} else if err != nil {
@@ -131,8 +141,42 @@ func (b *StepBuilder) Build() (items []*Item, errorsAndWarnings error) {
 	return items, errorsAndWarnings
 }
 
-func (b *StepBuilder) genItemForWorkflow(workflow *model.Workflow, axis matrix.Axis, data string) (item *Item, errorsAndWarnings error) {
-	workflowMetadata := MetadataFromStruct(b.Forge, b.Repo, b.Curr, b.Last, workflow, b.Host)
+func (b *StepBuilder) evaluateJsonnet(envs map[string]string) error {
+	for _, config := range b.Configs {
+		if path.Ext(config.Name) == ".jsonnet" {
+
+			configAst, err := jsonnet.SnippetToAST(config.Name, string(config.Data))
+			if err != nil {
+				return fmt.Errorf("failed to parse jsonnet config %s: %w", config.Name, err)
+			}
+
+			vm := jsonnet.MakeVM()
+
+			envJson, err := json.Marshal(envs)
+			if err != nil {
+				return fmt.Errorf("failed to marshal environment variables: %w", err)
+			}
+
+			importer := jsonnet.MemoryImporter{
+				map[string]jsonnet.Contents{
+					"env.jsonnet": jsonnet.MakeContents(string(envJson)),
+				},
+			}
+			vm.Importer(&importer)
+
+			json, err := vm.Evaluate(configAst)
+			if err != nil {
+				return fmt.Errorf("failed to evaluate jsonnet config %s: %w", config.Name, err)
+			}
+			config.Data = []byte(json)
+		}
+	}
+
+	return nil
+}
+
+func (b *StepBuilder) genItemForWorkflow(workflowMetadata metadata.Metadata, workflow *model.Workflow, axis matrix.Axis, data string) (item *Item, errorsAndWarnings error) {
+	workflowMetadata = AddWorkflowMetadataFromStruct(workflowMetadata, workflow)
 	environ := b.environmentVariables(workflowMetadata, axis)
 
 	// add global environment variables for substituting

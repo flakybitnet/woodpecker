@@ -33,12 +33,7 @@ package pipeline
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"errors"
-	"fmt"
-	"github.com/google/go-jsonnet"
-	"path"
-
 	"github.com/rs/zerolog/log"
 
 	pipeline_errors "go.woodpecker-ci.org/woodpecker/v2/pipeline/errors"
@@ -91,11 +86,6 @@ func parsePipeline(forge forge.Forge, store store.Store, currentPipeline *model.
 		envs[k] = v
 	}
 
-	err = evaluateJsonnet(configs, envs)
-	if err != nil {
-		return nil, err
-	}
-
 	b := stepbuilder.StepBuilder{
 		Repo:    repo,
 		Curr:    currentPipeline,
@@ -114,40 +104,6 @@ func parsePipeline(forge forge.Forge, store store.Store, currentPipeline *model.
 		},
 	}
 	return b.Build()
-}
-
-func evaluateJsonnet(configs []*forge_types.FileMeta, envs map[string]string) error {
-	for _, config := range configs {
-		if path.Ext(config.Name) == ".jsonnet" {
-
-			configAst, err := jsonnet.SnippetToAST(config.Name, string(config.Data))
-			if err != nil {
-				return fmt.Errorf("failed to parse jsonnet config %s: %w", config.Name, err)
-			}
-
-			vm := jsonnet.MakeVM()
-
-			envJson, err := json.Marshal(envs)
-			if err != nil {
-				return fmt.Errorf("failed to marshal environment variables: %w", err)
-			}
-
-			importer := jsonnet.MemoryImporter{
-				map[string]jsonnet.Contents{
-					"env.jsonnet": jsonnet.MakeContents(string(envJson)),
-				},
-			}
-			vm.Importer(&importer)
-
-			json, err := vm.Evaluate(configAst)
-			if err != nil {
-				return fmt.Errorf("failed to evaluate jsonnet config %s: %w", config.Name, err)
-			}
-			config.Data = []byte(json)
-		}
-	}
-
-	return nil
 }
 
 func createPipelineItems(c context.Context, forge forge.Forge, store store.Store,
