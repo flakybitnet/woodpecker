@@ -5,7 +5,7 @@
 
 local image = {
   debian: 'public.ecr.aws/docker/library/debian:bookworm-slim',
-  golang: 'public.ecr.aws/docker/library/golang:1.23.7-bookworm',
+  golang: 'public.ecr.aws/docker/library/golang:1.23.8-bookworm',
   node: 'public.ecr.aws/docker/library/node:22.14.0-bookworm-slim',
   kaniko: 'gcr.io/kaniko-project/executor:v1.23.2-debug',
   skopeo: 'public.ecr.aws/flakybitnet/skopeo:1.18.0-fb1',
