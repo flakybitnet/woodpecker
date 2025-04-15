@@ -1,6 +1,8 @@
 package pipeline
 
 import (
+	"github.com/stretchr/testify/assert"
+	forge_types "go.woodpecker-ci.org/woodpecker/v2/server/forge/types"
 	"testing"
 
 	"go.woodpecker-ci.org/woodpecker/v2/pipeline/backend/types"
@@ -49,4 +51,35 @@ func TestSetPipelineStepsOnPipeline(t *testing.T) {
 	if pipeline.Workflows[0].Children[0].PPID != 1 {
 		t.Fatal("Should set step PPID")
 	}
+}
+
+func TestJsonnet(t *testing.T) {
+	jsonnetPipeline := []byte(`
+		{
+			steps: {
+				hello: {
+					image: "alpine",
+					commands: [
+						std.join(" ", ["echo", "Hello", self.image, "!"]),
+						'echo The repo name is %s and event is %s' % [ std.extVar('CI_REPO_NAME'), std.extVar('CI_PIPELINE_EVENT') ],
+					]
+				},
+			},
+		}
+	`)
+	config := forge_types.FileMeta{
+		Name: "woodpecker.jsonnet",
+		Data: jsonnetPipeline,
+	}
+	configs := []*forge_types.FileMeta{&config}
+
+	envs := map[string]string{
+		"CI_REPO_NAME":      "test-repo",
+		"CI_PIPELINE_EVENT": "push",
+	}
+
+	err := evaluateJsonnet(configs, envs)
+	assert.NoError(t, err)
+
+	t.Log(string(config.Data))
 }

@@ -128,6 +128,7 @@ func evaluateJsonnet(configs []*forge_types.FileMeta, envs map[string]string) er
 			for k, v := range envs {
 				vm.ExtVar(k, v)
 			}
+			log.Trace().Interface("envs", envs).Msg("injected jsonnet external variables")
 
 			json, err := vm.Evaluate(ast)
 			if err != nil {

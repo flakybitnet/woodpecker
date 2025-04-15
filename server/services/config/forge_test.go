@@ -72,7 +72,7 @@ func TestFetch(t *testing.T) {
 				},
 			},
 		}
-	)`)
+	`)
 
 	testTable := []struct {
 		name              string
