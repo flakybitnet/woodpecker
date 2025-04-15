@@ -1,6 +1,6 @@
 /*
 This file is part of Woodpecker CI.
-Copyright (c) 2024 Woodpecker Authors
+Copyright (c) 2025 Woodpecker Authors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-
 	"github.com/rs/zerolog/log"
 
 	pipeline_errors "go.woodpecker-ci.org/woodpecker/v2/pipeline/errors"

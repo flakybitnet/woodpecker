@@ -1,16 +1,32 @@
-// Copyright 2023 Woodpecker Authors
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+/*
+This file is part of Woodpecker CI.
+Copyright (c) 2025 Woodpecker Authors
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+This file incorporates work covered by the following copyright and permission notice:
+	Copyright (c) 2023 Woodpecker Authors
+
+	Licensed under the Apache License, Version 2.0 (the "License");
+	you may not use this file except in compliance with the License.
+	You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+	Unless required by applicable law or agreed to in writing, software
+	distributed under the License is distributed on an "AS IS" BASIS,
+	WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+	See the License for the specific language governing permissions and
+	limitations under the License.
+*/
 
 package stepbuilder
 
@@ -24,8 +40,22 @@ import (
 	"go.woodpecker-ci.org/woodpecker/v2/version"
 )
 
+// AddWorkflowMetadataFromStruct return the workflow metadata from a pipeline will run with.
+func AddWorkflowMetadataFromStruct(workflowMetadata metadata.Metadata, workflow *model.Workflow) metadata.Metadata {
+	fWorkflow := metadata.Workflow{}
+	if workflow != nil {
+		fWorkflow = metadata.Workflow{
+			Name:   workflow.Name,
+			Number: workflow.PID,
+			Matrix: workflow.Environ,
+		}
+	}
+	workflowMetadata.Workflow = fWorkflow
+	return workflowMetadata
+}
+
 // MetadataFromStruct return the metadata from a pipeline will run with.
-func MetadataFromStruct(forge metadata.ServerForge, repo *model.Repo, pipeline, last *model.Pipeline, workflow *model.Workflow, sysURL string) metadata.Metadata {
+func MetadataFromStruct(forge metadata.ServerForge, repo *model.Repo, pipeline, last *model.Pipeline, sysURL string) metadata.Metadata {
 	host := sysURL
 	uri, err := url.Parse(sysURL)
 	if err == nil {
@@ -65,21 +95,11 @@ func MetadataFromStruct(forge metadata.ServerForge, repo *model.Repo, pipeline, 
 		}
 	}
 
-	fWorkflow := metadata.Workflow{}
-	if workflow != nil {
-		fWorkflow = metadata.Workflow{
-			Name:   workflow.Name,
-			Number: workflow.PID,
-			Matrix: workflow.Environ,
-		}
-	}
-
 	return metadata.Metadata{
-		Repo:     fRepo,
-		Curr:     metadataPipelineFromModelPipeline(pipeline, true),
-		Prev:     metadataPipelineFromModelPipeline(last, false),
-		Workflow: fWorkflow,
-		Step:     metadata.Step{},
+		Repo: fRepo,
+		Curr: metadataPipelineFromModelPipeline(pipeline, true),
+		Prev: metadataPipelineFromModelPipeline(last, false),
+		Step: metadata.Step{},
 		Sys: metadata.System{
 			Name:     "woodpecker",
 			URL:      sysURL,

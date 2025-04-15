@@ -1,6 +1,6 @@
 /*
 This file is part of Woodpecker CI.
-Copyright (c) 2024 Woodpecker Authors
+Copyright (c) 2025 Woodpecker Authors
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +40,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/google/go-jsonnet"
 	"github.com/rs/zerolog/log"
 	"go.woodpecker-ci.org/woodpecker/v2/server/forge"
 	"go.woodpecker-ci.org/woodpecker/v2/server/forge/types"
@@ -118,16 +117,6 @@ func (f *forgeFetcherContext) fetch(c context.Context, config string) ([]*types.
 		configFiles, err = f.getFirstAvailableConfig(ctx, constant.DefaultConfigOrder[:])
 		if err != nil {
 			return nil, fmt.Errorf("fallback config not found: %w", err)
-		}
-	}
-
-	for _, configFile := range configFiles {
-		if path.Ext(configFile.Name) == ".jsonnet" {
-			jsonData, err := evaluateJsonnetFile(configFile)
-			if err != nil {
-				return nil, fmt.Errorf("error evaluating jsonnet file %s: %w", configFile.Name, err)
-			}
-			configFile.Data = jsonData
 		}
 	}
 
@@ -216,10 +205,4 @@ func (f *forgeFetcherContext) filterSupportedConfigs(files []*types.FileMeta) (c
 		configFiles = append(configFiles, file)
 	}
 	return
-}
-
-func evaluateJsonnetFile(file *types.FileMeta) ([]byte, error) {
-	vm := jsonnet.MakeVM()
-	jsonData, err := vm.EvaluateAnonymousSnippet(file.Name, string(file.Data))
-	return []byte(jsonData), err
 }

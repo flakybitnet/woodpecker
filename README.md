@@ -171,6 +171,22 @@ You can now develop the pipelines using Jsonnet, for example
 }
 ```
 
+You can also import and use Woodpecker's environment variables:
+```jsonnet
+local env = import 'env.jsonnet';
+{
+  steps: {
+    hello: {
+      image: 'alpine',
+      commands: [
+        std.join(' ', ['echo', 'Hello', self.image, '!']),
+        'echo Env vars are %s' % std.join(', ', std.objectFields(env)),
+      ],
+    },
+  },
+}
+```
+
 Upstream issue: [Support for Jsonnet](https://github.com/woodpecker-ci/woodpecker/discussions/3277)
 
 ## License
