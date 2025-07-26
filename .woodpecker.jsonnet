@@ -5,10 +5,10 @@
 
 local image = {
   debian: 'public.ecr.aws/docker/library/debian:bookworm-slim',
-  golang: 'public.ecr.aws/docker/library/golang:1.23.8-bookworm',
-  node: 'public.ecr.aws/docker/library/node:22.14.0-bookworm-slim',
-  kaniko: 'gcr.io/kaniko-project/executor:v1.23.2-debug',
-  skopeo: 'public.ecr.aws/flakybitnet/skopeo:1.18.0-fb1',
+  golang: 'public.ecr.aws/docker/library/golang:1.23.11-bookworm',
+  node: 'public.ecr.aws/docker/library/node:22.17.1-bookworm-slim',
+  kaniko: 'gcr.io/kaniko-project/executor:v1.24.0-debug',
+  skopeo: 'public.ecr.aws/flakybitnet/skopeo:1.19.0-fb1',
 };
 
 {
@@ -18,13 +18,12 @@ local image = {
 
   when: [
     {
-      branch: 'main',
-      event: ['manual'],
+      event: [ 'tag', 'manual'],
       evaluate: 'RUN_COMPONENTS == "" || APP_COMPONENT in split(RUN_COMPONENTS, ",")',
     },
     {
+      event: ['push'],
       branch: { exclude: 'main' },
-      event: ['manual', 'push', 'tag'],
       evaluate: 'RUN_COMPONENTS == "" || APP_COMPONENT in split(RUN_COMPONENTS, ",")',
     },
   ],
