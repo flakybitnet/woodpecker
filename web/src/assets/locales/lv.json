@@ -230,7 +230,7 @@
         "restart_success": "Konvejerdarbs pārstartēts"
       },
       "config": "Konfigurācija",
-      "errors": "Kļūdas ({count})",
+      "errors": "Kļūdas",
       "event": {
         "cron": "Plānotais darbs",
         "deploy": "Uzstādīšana",
@@ -240,7 +240,7 @@
         "tag": "Tags"
       },
       "exit_code": "Iziešanas kods {exitCode}",
-      "files": "Izmainītie faili ({files})",
+      "files": "Izmainītie faili",
       "loading": "Notiek ielāde…",
       "log_download_error": "Veicot žurnālfaila lejupielādi notika kļūda",
       "log_title": "Soļa žurnāls",
@@ -275,7 +275,7 @@
       },
       "step_not_started": "Šis solis vēl nav uzsākts.",
       "tasks": "Uzdevumi",
-      "warnings": "Brīdinājumi ({count})",
+      "warnings": "Brīdinājumi",
       "we_got_some_errors": "Ak nē, notika kļūda!"
     },
     "pull_requests": "Izmaiņu pieprasījumi",

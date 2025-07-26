@@ -233,7 +233,7 @@
         "tag": "Tag"
       },
       "exit_code": "Kód ukončení {exitCode}",
-      "files": "Změněné soubory ({files})",
+      "files": "Změněné soubory",
       "loading": "Načítání…",
       "log_download_error": "Při stahování souboru protokolu došlo k chybě",
       "log_title": "Krokové protokoly",

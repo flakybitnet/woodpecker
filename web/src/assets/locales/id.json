@@ -233,7 +233,7 @@
         "restart_success": "Jalur pipa dimulai ulang"
       },
       "config": "Konfigurasi",
-      "errors": "Kesalahan ({count})",
+      "errors": "Kesalahan",
       "event": {
         "cron": "Kron",
         "deploy": "Luncur",
@@ -243,7 +243,7 @@
         "tag": "Tag"
       },
       "exit_code": "kode keluar {exitCode}",
-      "files": "Berkas yang diubah ({files})",
+      "files": "Berkas yang diubah",
       "loading": "Memuat…",
       "log_download_error": "Terjadi sebuah kesalahan saat mengunduh berkas catatan",
       "log_title": "Catatan Langkah",
@@ -278,7 +278,7 @@
       },
       "step_not_started": "Langkah ini belum dijalankan.",
       "tasks": "Tugas",
-      "warnings": "Peringatan ({count})",
+      "warnings": "Peringatan",
       "we_got_some_errors": "Aduh, kami mendapatkan beberapa kesalahan!"
     },
     "pull_requests": "Permintaan penarikan",

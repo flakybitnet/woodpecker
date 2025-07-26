@@ -243,7 +243,7 @@
                 "log_delete": "Supprimer"
             },
             "config": "Configuration",
-            "errors": "Erreurs ({count})",
+            "errors": "Erreurs",
             "event": {
                 "cron": "Tâche périodique",
                 "deploy": "Déploiement",
@@ -255,7 +255,7 @@
                 "pr_closed": "Pull Request fusionnée / fermée"
             },
             "exit_code": "Code de retour {exitCode}",
-            "files": "Fichiers changés ({files})",
+            "files": "Fichiers changés",
             "loading": "Chargement…",
             "log_download_error": "Il y a eu une erreur lors du téléchargement du fichier de journal",
             "log_title": "Journal des étapes",
@@ -290,7 +290,7 @@
             },
             "step_not_started": "L'étape n'a pas démarré encore.",
             "tasks": "Tâches",
-            "warnings": "Avertissements ({count})",
+            "warnings": "Avertissements",
             "we_got_some_errors": "Oh non, il y a des erreurs !",
             "log_delete_error": "Il y a eu une erreur lors de la suppression des logs",
             "log_delete_confirm": "Voulez vous vraiment supprimer les logs de cette étape ?"

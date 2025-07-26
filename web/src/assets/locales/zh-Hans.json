@@ -232,7 +232,7 @@
                 "restart_success": "流水线已重启"
             },
             "config": "配置",
-            "errors": "错误 ({count})",
+            "errors": "错误",
             "event": {
                 "cron": "计划任务",
                 "deploy": "部署",
@@ -243,7 +243,7 @@
                 "release": "发布"
             },
             "exit_code": "退出代码 {exitCode}",
-            "files": "修改的文件（{files}）",
+            "files": "修改的文件",
             "loading": "载入中…",
             "log_download_error": "下载日志文件中发生了错误",
             "log_title": "步骤日志",
@@ -278,7 +278,7 @@
             },
             "step_not_started": "该步骤尚未启动。",
             "tasks": "任务",
-            "warnings": "警告 ({count})",
+            "warnings": "警告",
             "we_got_some_errors": "哦不，我们遇到了一些错误！"
         },
         "pull_requests": "合并请求",

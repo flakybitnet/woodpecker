@@ -220,7 +220,7 @@
                 "tag": "Tag"
             },
             "exit_code": "Kod wyjścia {exitCode}",
-            "files": "Zmodyfikowane pliki ({files})",
+            "files": "Zmodyfikowane pliki",
             "loading": "Ładowanie…",
             "log_download_error": "Wystąpił błąd podczas pobierania pliku z logiem",
             "no_files": "Nie zmodyfikowano żadnych plików.",

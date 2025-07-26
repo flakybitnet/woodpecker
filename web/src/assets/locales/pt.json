@@ -246,7 +246,7 @@
             },
             "tasks": "Tarefas",
             "config": "Configuração",
-            "files": "Arquivos alterados ({files})",
+            "files": "Arquivos alterados",
             "no_files": "Nenhum arquivo foi alterado.",
             "no_pipelines": "Nenhum pipelines foi iniciado ainda.",
             "event": {
@@ -258,8 +258,8 @@
                 "manual": "Manual",
                 "release": "Release"
             },
-            "errors": "Erros ({count})",
-            "warnings": "Avisos ({count})",
+            "errors": "Erros",
+            "warnings": "Avisos",
             "show_errors": "Mostrar erros",
             "no_pipeline_steps": "Não há etapas de pipeline disponíveis!",
             "pipelines_for": "Pipelines para branch \"{branch}\"",

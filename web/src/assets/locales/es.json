@@ -232,7 +232,7 @@
                 "restart_success": "Pipeline reiniciado"
             },
             "config": "Config",
-            "errors": "Errores ({count})",
+            "errors": "Errores",
             "event": {
                 "cron": "Cron",
                 "deploy": "Despliegue",
@@ -243,7 +243,7 @@
                 "release": "Release"
             },
             "exit_code": "Código de salida {exitCode}",
-            "files": "Archivos modificados ({files})",
+            "files": "Archivos modificados",
             "loading": "Cargando…",
             "log_download_error": "Se ha producido un error al descargar el archivo de registro",
             "log_title": "Registros de pasos",
@@ -278,7 +278,7 @@
             },
             "step_not_started": "Este paso aún no se ha iniciado.",
             "tasks": "Tareas",
-            "warnings": "Avisos ({count})",
+            "warnings": "Avisos",
             "we_got_some_errors": "¡Oh no, tenemos algunos errores!"
         },
         "pull_requests": "Pull Request",

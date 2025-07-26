@@ -188,13 +188,13 @@
             },
             "no_pipelines": "Non è ancora stata attivata alcuna pipeline.",
             "pipelines_for": "Pipeline per ramo \"{branch}\"",
-            "files": "File modificati ({files})",
+            "files": "File modificati",
             "no_pipeline_steps": "Nessuno step disponibile nella pipeline!",
             "step_not_started": "Questo step non è ancora iniziato.",
             "config": "Configurazione",
             "tasks": "Task",
             "log_delete_confirm": "Vuoi davvero eliminare i registri attività di questo step?",
-            "errors": "Errori ({count})",
+            "errors": "Errori",
             "protected": {
                 "awaits": "Questa pipeline è in attesa di approvazione da parte di un manutentore!",
                 "approve": "Approva",
@@ -217,7 +217,7 @@
                 "declined": "rifiutata",
                 "error": "errore"
             },
-            "warnings": "Avvertenze ({count})",
+            "warnings": "Avvertenze",
             "show_errors": "Mostra errori",
             "we_got_some_errors": "Oh no, si sono verificati degli errori!",
             "event": {
