@@ -7,7 +7,8 @@ Woodpecker is a simple yet powerful CI/CD engine with great extensibility.
 This is a fork of [Woodpecker CI](https://github.com/woodpecker-ci/woodpecker) with the following changes:
 
 1. It is based on top of the stable releases with back-porting.
-2. It supports running the workload in Kubernetes [restricted](https://kubernetes.io/docs/concepts/security/pod-security-standards) environment.
+2. It supports running the workload in Kubernetes [restricted](https://kubernetes.io/docs/concepts/security/pod-security-standards) environment,
+   and Pod user namespaces also.
 3. It supports secrets encryption.
 4. It maintains self-cleanup tasks.
 5. [Jsonnet](https://jsonnet.org/) support.
