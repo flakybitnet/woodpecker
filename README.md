@@ -39,10 +39,6 @@ The OCI images are available at
   * [Server](https://gallery.ecr.aws/flakybitnet/woodpecker/server)
   * [Agent](https://gallery.ecr.aws/flakybitnet/woodpecker/agent)
   * [CLI](https://gallery.ecr.aws/flakybitnet/woodpecker/cli)
-* **FlakyBit's Harbor**
-  * Server: `harbor.flakybit.net/woodpecker/server:<version>`
-  * Agent: `harbor.flakybit.net/woodpecker/agent:<version>`
-  * CLI: `harbor.flakybit.net/woodpecker/cli:<version>`
 
 ## Documentation
 
