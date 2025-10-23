@@ -27,18 +27,10 @@ For example, if a some bug was fixed in the upstream `main`, we could release `v
 ## Images
 
 The OCI images are available at
-* **Quay**
-  * [Server](https://quay.io/repository/flakybitnet/woodpecker-server)
-  * [Agent](https://quay.io/repository/flakybitnet/woodpecker-agent)
-  * [CLI](https://quay.io/repository/flakybitnet/woodpecker-cli)
 * **GHCR**
   * [Server](https://github.com/flakybitnet/woodpecker/pkgs/container/woodpecker-server)
   * [Agent](https://github.com/flakybitnet/woodpecker/pkgs/container/woodpecker-agent)
   * [CLI](https://github.com/flakybitnet/woodpecker/pkgs/container/woodpecker-cli)
-* **AWS ECR Public**
-  * [Server](https://gallery.ecr.aws/flakybitnet/woodpecker/server)
-  * [Agent](https://gallery.ecr.aws/flakybitnet/woodpecker/agent)
-  * [CLI](https://gallery.ecr.aws/flakybitnet/woodpecker/cli)
 
 ## Documentation
 
